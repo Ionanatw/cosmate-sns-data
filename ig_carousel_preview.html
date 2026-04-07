@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IG Carousel Designer - Anime Trends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0079C6;
+            --secondary: #FDB338;
+            --bg-dark: #133f52;
+            --bg-mid: #307db8;
+            --bg-light: #A4C7C6;
+            --text-white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #eee; font-family: 'Noto Sans TC', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+
+        .controls { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 800px; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; background: var(--primary); color: white; font-weight: bold; }
+        button:hover { opacity: 0.8; }
+
+        /* Slide Container */
+        #carousel-container {
+            width: 800px; /* 4:5 ratio base for preview */
+            height: 1000px;
+            background: white;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .slide.active { display: flex; }
+
+        /* Theme Styles */
+        .theme-dark { background: var(--bg-dark); color: white; }
+        .theme-blue { background: var(--primary); color: white; }
+        .theme-light { background: var(--bg-light); color: var(--bg-dark); }
+        .theme-gradient { background: linear-gradient(135deg, var(--bg-dark), var(--primary)); color: white; }
+
+        h1 { font-size: 80px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; letter-spacing: -2px; }
+        h2 { font-size: 50px; font-weight: 700; margin-bottom: 30px; color: var(--secondary); }
+        .content { font-size: 28px; line-height: 1.6; max-width: 90%; }
+        
+        .pigeon { font-size: 100px; margin-bottom: 20px; position: relative; }
+        
+        .footer {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 60px;
+            font-weight: bold;
+            font-size: 20px;
+            opacity: 0.8;
+            left: 0;
+        }
+
+        .slide-num { background: var(--secondary); color: var(--bg-dark); padding: 5px 15px; border-radius: 20px; }
+
+        /* Illustration Elements */
+        .blob {
+            position: absolute;
+            z-index: 0;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="showSlide(1)">Cover</button>
+        <button onclick="showSlide(2)">Summary</button>
+        <button onclick="showSlide(3)">Jujutsu</button>
+        <button onclick="showSlide(4)">Yomi</button>
+        <button onclick="showSlide(5)">Witch Hat</button>
+        <button onclick="showSlide(6)">Frieren</button>
+        <button onclick="showSlide(7)">Viral Secrets</button>
+        <button onclick="showSlide(8)">Stats</button>
+        <button onclick="showSlide(9)">Netflix</button>
+        <button onclick="showSlide(10)">Outro</button>
+    </div>
+
+    <div id="carousel-container">
+        <!-- Slide 1 -->
+        <div class="slide theme-gradient active" id="slide1">
+            <div class="blob" style="width:400px; height:400px; background: var(--secondary); top:-100px; left:-100px;"></div>
+            <div class="pigeon">🐦</div>
+            <h1 style="z-index:1">爆紅動漫<br>文章分析</h1>
+            <p class="content" style="z-index:1; font-weight: bold; color: var(--secondary);">Threads 熱門討論趨勢報告</p>
+            <div class="footer"><span class="slide-num">01 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide theme-dark" id="slide2">
+            <h2>數據概覽</h2>
+            <div class="pigeon">🐦🔍</div>
+            <p class="content">
+                總愛心共鳴：<b>200k+</b><br>
+                熱議關鍵字：咒術、鋼鍊作者、Netflix<br>
+                資料日期：2026-04-07
+            </p>
+            <div class="footer"><span class="slide-num">02 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="slide theme-blue" id="slide3">
+            <h2>TOP 1: 咒術迴戰</h2>
+            <div class="pigeon">🐦🪄</div>
+            <p class="content">
+                <b>6.4 萬按讚</b><br>
+                幕後製作分享引爆全網。<br>
+                動畫師曝「蟑螂段落」製作辛酸！
+            </p>
+            <div class="footer"><span class="slide-num">03 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide theme-light" id="slide4">
+            <h2 style="color: var(--primary)">TOP 2: 黃泉使者</h2>
+            <div class="pigeon">🐦⛓️</div>
+            <p class="content">
+                <b>4.2 萬按讚</b><br>
+                鋼鍊作者荒川弘新作。<br>
+                Netflix 上架帶動極高討論。
+            </p>
+            <div class="footer"><span class="slide-num">04 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide theme-dark" id="slide5">
+            <h2>4月最強黑馬</h2>
+            <div class="pigeon">🐦✨</div>
+            <p class="content">
+                <b>魔法帽的工作室</b><br>
+                Netflix 獨家放送。<br>
+                製作陣容豪華，原作粉一致好評！
+            </p>
+            <div class="footer"><span class="slide-num">05 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 6 -->
+        <div class="slide theme-gradient" id="slide6">
+            <h2>2027 預告回歸</h2>
+            <div class="pigeon">🐦🎒</div>
+            <p class="content">
+                <b>葬送的芙莉蓮 第3季</b><br>
+                確認 2027 年 10 月播出。<br>
+                粉絲已開始「集體儲存生命」。
+            </p>
+            <div class="footer"><span class="slide-num">06 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 7 -->
+        <div class="slide theme-blue" id="slide7">
+            <h2>爆紅公式</h2>
+            <div class="pigeon">🐦📢</div>
+            <p class="content">
+                🎬 幕後製作辛酸<br>
+                📢 官方重大官宣<br>
+                🌟 新番熱烈推薦
+            </p>
+            <div class="footer"><span class="slide-num">07 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 8 -->
+        <div class="slide theme-light" id="slide8">
+            <h2 style="color: var(--primary)">數據亮點</h2>
+            <div class="pigeon">🐦📊</div>
+            <p class="content">
+                動漫內容在 Threads 具備<br>
+                <b>極高轉發率 (2k+ per viral post)</b><br>
+                與動漫迷強烈的「推廣熱情」。
+            </p>
+            <div class="footer"><span class="slide-num">08 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 9 -->
+        <div class="slide theme-dark" id="slide9">
+            <h2>Netflix 效應</h2>
+            <div class="pigeon">🐦📺</div>
+            <p class="content">
+                近 2 週熱門動漫<br>
+                <b>80% 都能在 Netflix 觀看</b><br>
+                顯見平台佈局對討論趨勢的影響。
+            </p>
+            <div class="footer"><span class="slide-num">09 / 10</span> <span>COSMATE</span></div>
+        </div>
+
+        <!-- Slide 10 -->
+        <div class="slide theme-gradient" id="slide10">
+            <div class="pigeon">🐦❤️</div>
+            <h1>關注我們</h1>
+            <p class="content">獲取更多動漫大數據洞察</p>
+            <h2 style="margin-top:20px">COSMATE</h2>
+            <div class="footer"><span class="slide-num">10 / 10</span> <span>@COSMATE_DATA</span></div>
+        </div>
+    </div>
+
+    <script>
+        function showSlide(num) {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + num).classList.add('active');
+        }
+    </script>
+</body>
+</html>
