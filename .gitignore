@@ -2,3 +2,5 @@
 node_modules/
 .wrangler/
 __pycache__/
+data/raw/
+data/per_topic/

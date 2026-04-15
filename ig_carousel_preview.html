@@ -24,13 +24,15 @@
 
         /* Slide Container */
         #carousel-container {
-            width: 800px; /* 4:5 ratio base for preview */
-            height: 1000px;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4 / 5;
             background: white;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
             border-radius: 20px;
+            margin: 0 auto;
         }
 
         .slide {
@@ -53,11 +55,11 @@
         .theme-light { background: var(--bg-light); color: var(--bg-dark); }
         .theme-gradient { background: linear-gradient(135deg, var(--bg-dark), var(--primary)); color: white; }
 
-        h1 { font-size: 80px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; letter-spacing: -2px; }
-        h2 { font-size: 50px; font-weight: 700; margin-bottom: 30px; color: var(--secondary); }
-        .content { font-size: 28px; line-height: 1.6; max-width: 90%; }
+        h1 { font-size: 8vw; font-weight: 900; margin-bottom: 20px; line-height: 1.1; letter-spacing: -2px; }
+        h2 { font-size: 6vw; font-weight: 700; margin-bottom: 30px; color: var(--secondary); }
+        .content { font-size: 3.5vw; line-height: 1.6; max-width: 90%; }
         
-        .pigeon { font-size: 100px; margin-bottom: 20px; position: relative; }
+        .pigeon { font-size: 12vw; margin-bottom: 20px; position: relative; }
         
         .footer {
             position: absolute;
