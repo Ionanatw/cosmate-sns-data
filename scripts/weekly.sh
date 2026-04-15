@@ -31,7 +31,13 @@ if [ "$MODE" != "skip-scrape" ]; then
 
   echo ""
   echo "▶ Step 1a/3: 爬取三主題市場熱榜（anime + love + cosplay）"
-  python3 scripts/scrape_multi_topic.py anime love cosplay --timeout 450
+  # 優先 Playwright（能拿 repost/share）；失敗降級到 Apify
+  if python3 scripts/scrape_playwright_topics.py; then
+    echo "✅ Playwright 爬取成功（含 repost/share）"
+  else
+    echo "⚠️  Playwright 失敗或無 cookies，降級使用 Apify（無 repost/share）"
+    python3 scripts/scrape_multi_topic.py anime love cosplay --timeout 450
+  fi
 
   echo ""
   echo "▶ Step 1b/3: 抓取 @cosmatedaily 官方 insights（近 30 天）"

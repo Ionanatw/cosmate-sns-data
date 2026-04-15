@@ -48,14 +48,23 @@
 
 | 主題 | 資料來源 | 檔名前綴 | 關鍵字 / 帳號 | 特殊過濾 |
 |---|---|---|---|---|
-| **anime** 動漫 | Apify search | `anime_` | `動漫 anime 咒術迴戰 芙莉蓮 黃泉使者 魔法帽的工作室 鬼滅之刃 排球少年 我推的孩子 MAPPA 動畫瘋 新番` | — |
-| **love** 交友 | Apify search | `love_` | `交友軟體 曖昧 暈船 分手 單身 脫單 約會 告白 前任 戀愛` | — |
-| **cosplay** Cosplay | Apify search | `cosplay_` | `cosplay coser cos服 漫展 CWT FF ACOSTA CCF` | **zh-TW 過濾** |
+| **anime** 動漫 | Playwright + Chrome cookie | `anime_` | `動漫 咒術迴戰 芙莉蓮 我推的孩子 排球少年 鬼滅之刃 MAPPA 動畫瘋` | — |
+| **love** 交友 | Playwright + Chrome cookie | `love_` | `交友軟體 曖昧 暈船 脫單 約會 告白 單身 戀愛` | — |
+| **cosplay** Cosplay | Playwright + Chrome cookie | `cosplay_` | `cosplay coser cos服 漫展 CWT FF ACOSTA CCF` | **zh-TW 過濾** |
 | **cosmate** CosMate | **Threads Graph API** | `cosmate_` | @cosmatedaily 所有貼文 | — |
 
 **資料來源差異**：
-- 前 3 個主題透過 Apify 按 keyword 搜 Threads → 限制：Threads search 只回 top results，小帳號貼文可能搜不到
-- cosmate 透過官方 API 直接列出帳號所有貼文 + insights → 可拿到 views/quotes 等獨家 metric
+- 市場 3 主題用 Playwright 借 Chrome cookie 爬 Threads DOM → **能拿到 repost/share**（Apify 拿不到）
+- 失敗時降級到 Apify（只有 likes+comments）— 見 weekly.sh
+- cosmate 用官方 API 直接列帳號所有貼文 + insights（含 views/quotes）
+
+**Cookie 需求**（本機跑需要）：
+```bash
+# 一次性：從本機 Chrome 匯出 cookies（需先在 Chrome 登入 Threads）
+python3 /Users/ionachen/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py \
+  --dump-cookies ~/.cosmate/threads_cookies.json
+```
+之後任何機器（未來雲端/VPS）只要讀得到這個 JSON 就能跑，Cookie 有效期通常幾週。
 
 ---
 

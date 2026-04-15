@@ -3,13 +3,14 @@
 掃 reports/archive/ 目錄底下所有 YYYY-Www 子資料夾，產出 archive 列表頁。
 讓鴿王可以從 /reports/archive/ 點進過去任一週的歷史週報。
 """
-import re
+import re, json, subprocess
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 ARCHIVE_DIR = PROJECT_DIR / "reports" / "archive"
 OUTPUT = ARCHIVE_DIR / "index.html"
+CF_PROJECT = "threads-analytics-report"
 
 WEEK_PATTERN = re.compile(r"^(\d{4})-W(\d{2})$")
 
@@ -20,6 +21,27 @@ def iso_week_to_date(year, week):
     jan4_weekday = jan4.isoweekday()  # Monday=1
     week1_monday = jan4 - timedelta(days=jan4_weekday - 1)
     return week1_monday + timedelta(weeks=week - 1)
+
+
+def fetch_cloudflare_deployments():
+    """呼叫 wrangler 取得所有部署（失敗則回空 list）"""
+    try:
+        result = subprocess.run(
+            ["npx", "wrangler", "pages", "deployment", "list",
+             "--project-name", CF_PROJECT, "--json"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode != 0:
+            print(f"  ⚠️  wrangler 失敗 ({result.returncode}), 跳過 Cloudflare 區塊")
+            return []
+        idx = result.stdout.find("[")
+        if idx < 0:
+            return []
+        data = json.loads(result.stdout[idx:])
+        return [d for d in data if d.get("Environment") == "Production"]
+    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError) as e:
+        print(f"  ⚠️  wrangler 不可用或回傳異常: {e}")
+        return []
 
 
 def list_archives():
@@ -55,6 +77,16 @@ def render():
         for a in archives
     ) or '<tr><td colspan="3" style="text-align:center;color:#a0a0a0;padding:32px">目前沒有 archive</td></tr>'
 
+    # Cloudflare 歷史部署（比 reports/archive/ 更早、或跨主題的版本都在）
+    deployments = fetch_cloudflare_deployments()
+    cf_rows = "".join(
+        f'<tr><td><code style="color:#b0aea5">{d.get("Id","")[:8]}</code></td>'
+        f'<td>{(d.get("Source","") or "—")[:7]}</td>'
+        f'<td>{d.get("Deployment") or ""}</td>'
+        f'<td><a href="{d.get("Deployment")}" target="_blank" style="color:#d97757">查看 →</a></td></tr>'
+        for d in deployments
+    ) or '<tr><td colspan="4" style="text-align:center;color:#a0a0a0;padding:20px">無法取得（wrangler 未認證或無網路）</td></tr>'
+
     html = f"""<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -88,9 +120,18 @@ tr:last-child td{{border-bottom:none;}}
     <h1>📚 歷史週報</h1>
     <div class="gen">共 {len(archives)} 期 · 最新在上</div>
   </header>
+
+  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;color:#fff;">週次列表（本 repo 管理）</h2>
   <table>
     <thead><tr><th>週數</th><th>涵蓋區間</th><th>操作</th></tr></thead>
     <tbody>{rows}</tbody>
+  </table>
+
+  <h2 style="font-size:1.1rem;font-weight:600;margin:40px 0 8px;color:#fff;">Cloudflare 部署歷史</h2>
+  <p style="color:#a0a0a0;font-size:0.8rem;margin-bottom:12px;">每次 deploy 保留的 unique URL。2026-W16 前的版本沒進 archive 體系，但這裡都能回看。</p>
+  <table>
+    <thead><tr><th>Deployment ID</th><th>Commit</th><th>URL</th><th>操作</th></tr></thead>
+    <tbody>{cf_rows}</tbody>
   </table>
 </div>
 </body>
