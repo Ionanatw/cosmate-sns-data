@@ -26,7 +26,7 @@ TOPICS = {
     "food": "美食 好吃 餐廳 咖啡 甜點 火鍋 拉麵 早午餐 小吃 吃到飽",
     "travel": "旅行 日本 韓國 東京 大阪 京都 機票 出國 自由行",
     "idol": "追星 演唱會 偶像 kpop 五月天 周杰倫 應援 見面會 音樂祭",
-    "cosplay": "cosplay coser cos服 漫展 同人 漫博 CWT FF 場次 出角 痛包",
+    "cosplay": "cosplay coser cos服 漫展 CWT FF ACOSTA CCF",
     "mood": "焦慮 壓力 崩潰 好煩 心累 emo 低潮 療癒 正能量 內耗",
     "hot": "爆紅 笑死 傻眼 誇張 離譜 好扯 迷因 meme 梗圖",
 }
