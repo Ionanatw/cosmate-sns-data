@@ -43,10 +43,11 @@ echo ""
 echo "▶ Step 2/3: 分析（近 30 天 + 近 7 天）"
 python3 scripts/analyze_by_topic.py --all --days 30
 
-# Step 3: 產 HTML
+# Step 3: 產 HTML（主頁 + 本週 archive + archive 列表）
 echo ""
-echo "▶ Step 3/3: 產出三 tab HTML"
+echo "▶ Step 3/3: 產出四 tab HTML + archive"
 python3 scripts/render_index.py
+python3 scripts/render_archive_index.py
 
 # Optional: 部署（僅本機；CI 環境交給 wrangler-action）
 if [ "$MODE" = "deploy" ]; then

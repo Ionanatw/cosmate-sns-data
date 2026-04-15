@@ -10,6 +10,7 @@ from datetime import datetime, timezone, timedelta
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 PER_TOPIC_DIR = PROJECT_DIR / "data" / "per_topic"
 OUTPUT_HTML = PROJECT_DIR / "index.html"
+ARCHIVE_DIR = PROJECT_DIR / "reports" / "archive"
 
 TOPICS = ["anime", "love", "cosplay", "cosmate"]
 TOPIC_LABELS = {"anime": "動漫", "love": "交友", "cosplay": "Cosplay", "cosmate": "CosMate"}
@@ -41,7 +42,10 @@ def render():
     if not data:
         raise SystemExit("No per_topic data found. Run analyze_by_topic.py --all first.")
 
-    generated = datetime.now(TZ_TPE).strftime("%Y-%m-%d %H:%M")
+    now = datetime.now(TZ_TPE)
+    generated = now.strftime("%Y-%m-%d %H:%M")
+    iso_year, iso_week, _ = now.isocalendar()
+    week_slug = f"{iso_year}-W{iso_week:02d}"
 
     # 內嵌 JSON
     embedded = json.dumps(data, ensure_ascii=False)
@@ -148,9 +152,9 @@ footer {{ text-align:center; color:var(--text-secondary); font-size:0.75rem; mar
 <body>
 <div class="container">
   <header>
-    <div class="subtitle">Weekly Trends Insight</div>
+    <div class="subtitle">Weekly Trends Insight · <a href="reports/archive/" style="color:var(--text-secondary);text-decoration:underline;">📚 歷史週報</a></div>
     <h1>Threads 週一熱門報告<br>動漫 × 交友 × Cosplay</h1>
-    <div class="gen">Generated {generated} GMT+8 · 主報告近 30 天 · 進階區塊近 7 天 · 三主題獨立資料源</div>
+    <div class="gen">Generated {generated} GMT+8 · 本週 {week_slug} · 主報告近 30 天 · 進階區塊近 7 天</div>
   </header>
 
   <div class="tabs">{tab_buttons}</div>
@@ -319,6 +323,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {{
 
     OUTPUT_HTML.write_text(html, encoding="utf-8")
     print(f"✅ {OUTPUT_HTML} ({len(html):,} bytes)")
+
+    # 同時寫 archive — 歷史版本保留（為了從 /archive/ 相對路徑正確載入，連結用 ../../）
+    week_dir = ARCHIVE_DIR / week_slug
+    week_dir.mkdir(parents=True, exist_ok=True)
+    archive_html = html.replace('href="reports/archive/"', 'href="../"')
+    (week_dir / "index.html").write_text(archive_html, encoding="utf-8")
+    print(f"📚 archive → reports/archive/{week_slug}/index.html")
 
 
 if __name__ == "__main__":

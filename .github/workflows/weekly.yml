@@ -16,6 +16,9 @@ on:
           - build
           - skip-scrape
 
+permissions:
+  contents: write  # 允許 bot push archive 回 repo
+
 jobs:
   report:
     runs-on: ubuntu-latest
@@ -39,6 +42,17 @@ jobs:
           THREADS_USERID_COSMATE: ${{ secrets.THREADS_USERID_COSMATE }}
           THREADS_USERNAME_COSMATE: ${{ secrets.THREADS_USERNAME_COSMATE }}
         run: bash scripts/weekly.sh ${{ github.event.inputs.mode || 'deploy' }}
+
+      - name: Commit archive back to repo
+        if: ${{ github.event.inputs.mode != 'build' && github.event.inputs.mode != 'skip-scrape' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/archive/ index.html || true
+          git diff --cached --quiet || git commit -m "chore: weekly archive $(date +%Y-W%V)
+
+          Co-Authored-By: GitHub Actions <noreply@github.com>"
+          git push || echo "ℹ️  nothing to push (no changes)"
 
       - name: Deploy to Cloudflare Pages
         if: ${{ github.event.inputs.mode != 'build' && github.event.inputs.mode != 'skip-scrape' }}
