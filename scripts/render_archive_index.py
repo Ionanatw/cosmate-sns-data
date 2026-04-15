@@ -5,7 +5,7 @@
 """
 import re, json, subprocess
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 ARCHIVE_DIR = PROJECT_DIR / "reports" / "archive"
@@ -23,8 +23,25 @@ def iso_week_to_date(year, week):
     return week1_monday + timedelta(weeks=week - 1)
 
 
+def git_log_subject(sha):
+    """查 git log 取 commit subject；找不到回 None"""
+    if not sha:
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%s", sha],
+            capture_output=True, text=True, timeout=5, cwd=PROJECT_DIR,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip() or None
+    except Exception:
+        pass
+    return None
+
+
 def fetch_cloudflare_deployments():
-    """呼叫 wrangler 取得所有部署（失敗則回空 list）"""
+    """呼叫 wrangler 取得所有部署（失敗則回空 list）
+    每筆同時補抓 git commit subject（若在本地 git）"""
     try:
         result = subprocess.run(
             ["npx", "wrangler", "pages", "deployment", "list",
@@ -38,7 +55,12 @@ def fetch_cloudflare_deployments():
         if idx < 0:
             return []
         data = json.loads(result.stdout[idx:])
-        return [d for d in data if d.get("Environment") == "Production"]
+        prod_only = [d for d in data if d.get("Environment") == "Production"]
+        # Enrich 每筆加上 commit subject
+        for d in prod_only:
+            sha = d.get("Source", "")
+            d["commit_subject"] = git_log_subject(sha) if sha else None
+        return prod_only
     except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError) as e:
         print(f"  ⚠️  wrangler 不可用或回傳異常: {e}")
         return []
@@ -125,13 +147,21 @@ def render():
 
     # Cloudflare 歷史部署（比 reports/archive/ 更早、或跨主題的版本都在）
     deployments = fetch_cloudflare_deployments()
-    cf_rows = "".join(
-        f'<tr><td><code style="color:#b0aea5">{d.get("Id","")[:8]}</code></td>'
-        f'<td>{(d.get("Source","") or "—")[:7]}</td>'
-        f'<td>{d.get("Deployment") or ""}</td>'
-        f'<td><a href="{d.get("Deployment")}" target="_blank" style="color:#d97757">查看 →</a></td></tr>'
-        for d in deployments
-    ) or '<tr><td colspan="4" style="text-align:center;color:#a0a0a0;padding:20px">無法取得（wrangler 未認證或無網路）</td></tr>'
+
+    def format_cf_row(d, idx):
+        when = d.get("Status", "—")  # "2 minutes ago" 這類相對時間
+        subject = d.get("commit_subject") or f'（舊版 · commit {d.get("Source","")[:7]} 已不在 repo）'
+        marker = " 🟢 目前線上" if idx == 0 else ""
+        return (
+            f'<tr>'
+            f'<td style="color:#b0aea5;white-space:nowrap">{when}{marker}</td>'
+            f'<td style="font-size:0.85rem">{subject}</td>'
+            f'<td><a href="{d.get("Deployment")}" target="_blank" style="color:#d97757">查看 →</a></td>'
+            f'</tr>'
+        )
+
+    cf_rows = "".join(format_cf_row(d, i) for i, d in enumerate(deployments)) or \
+        '<tr><td colspan="3" style="text-align:center;color:#a0a0a0;padding:20px">無法取得（wrangler 未認證或無網路）</td></tr>'
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-TW">
@@ -183,10 +213,10 @@ tr:last-child td{{border-bottom:none;}}
     <tbody>{rows}</tbody>
   </table>
 
-  <h2 style="font-size:1.1rem;font-weight:600;margin:40px 0 8px;color:#fff;">Cloudflare 部署歷史</h2>
-  <p style="color:#a0a0a0;font-size:0.8rem;margin-bottom:12px;">每次 deploy 保留的 unique URL。2026-W16 前的版本沒進 archive 體系，但這裡都能回看。</p>
+  <h2 style="font-size:1.1rem;font-weight:600;margin:40px 0 8px;color:#fff;">每次部署的快照（近期優先）</h2>
+  <p style="color:#a0a0a0;font-size:0.8rem;margin-bottom:12px;">2026-W16 前（4/14 以前）沒進 archive 體系，但每次 deploy 的版本都還在這裡能回看。</p>
   <table>
-    <thead><tr><th>Deployment ID</th><th>Commit</th><th>URL</th><th>操作</th></tr></thead>
+    <thead><tr><th>部署時間</th><th>版本摘要</th><th>操作</th></tr></thead>
     <tbody>{cf_rows}</tbody>
   </table>
 </div>
