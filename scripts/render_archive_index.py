@@ -172,20 +172,20 @@ def render():
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 *{{margin:0;padding:0;box-sizing:border-box;}}
-body{{background:#0a0a0a;color:#fff;font-family:'Inter',sans-serif;line-height:1.6;}}
+body{{background:#faf9f5;color:#141413;font-family:'Inter',sans-serif;line-height:1.6;}}
 .container{{max-width:800px;margin:0 auto;padding:40px 20px;}}
 header{{text-align:center;margin-bottom:40px;}}
-.subtitle{{color:#a0a0a0;font-size:0.85rem;letter-spacing:3px;text-transform:uppercase;}}
+.subtitle{{color:#8a8679;font-size:0.85rem;letter-spacing:3px;text-transform:uppercase;}}
 h1{{font-size:2.4rem;font-weight:800;margin-top:10px;}}
-.gen{{color:#a0a0a0;font-size:0.8rem;margin-top:12px;}}
-table{{width:100%;border-collapse:collapse;background:rgba(255,255,255,0.05);border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);}}
-th{{text-align:left;color:#a0a0a0;font-size:0.8rem;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.1);text-transform:uppercase;letter-spacing:1px;}}
-td{{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.08);}}
-td a{{color:#fff;text-decoration:none;font-weight:600;}}
+.gen{{color:#8a8679;font-size:0.8rem;margin-top:12px;}}
+table{{width:100%;border-collapse:collapse;background:#fff;border-radius:20px;overflow:hidden;border:1px solid #e8e6dc;}}
+th{{text-align:left;color:#8a8679;font-size:0.8rem;padding:14px 20px;border-bottom:1px solid #e8e6dc;text-transform:uppercase;letter-spacing:1px;}}
+td{{padding:14px 20px;border-bottom:1px solid #f0ede4;}}
+td a{{color:#141413;text-decoration:none;font-weight:600;}}
 td a:hover{{color:#d97757;}}
 tr:last-child td{{border-bottom:none;}}
-.back{{display:inline-block;color:#a0a0a0;text-decoration:none;margin-bottom:24px;}}
-.back:hover{{color:#fff;}}
+.back{{display:inline-block;color:#8a8679;text-decoration:none;margin-bottom:24px;}}
+.back:hover{{color:#d97757;}}
 </style>
 </head>
 <body>
@@ -207,18 +207,22 @@ tr:last-child td{{border-bottom:none;}}
     </div>
   </header>
 
-  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;color:#fff;">週次列表</h2>
+  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;color:#141413;">週次列表</h2>
   <table>
     <thead><tr><th>週次 / 區間</th><th>本週各主題 Top 1</th><th>操作</th></tr></thead>
     <tbody>{rows}</tbody>
   </table>
 
-  <h2 style="font-size:1.1rem;font-weight:600;margin:40px 0 8px;color:#fff;">每次部署的快照（近期優先）</h2>
-  <p style="color:#a0a0a0;font-size:0.8rem;margin-bottom:12px;">2026-W16 前（4/14 以前）沒進 archive 體系，但每次 deploy 的版本都還在這裡能回看。</p>
-  <table>
-    <thead><tr><th>部署時間</th><th>版本摘要</th><th>操作</th></tr></thead>
-    <tbody>{cf_rows}</tbody>
-  </table>
+  <details style="margin-top:40px;">
+    <summary style="cursor:pointer;font-size:1rem;font-weight:600;color:#141413;padding:8px 0;list-style:none;">
+      ▸ 部署快照（{len(deployments)} 筆，點開展開）
+    </summary>
+    <p style="color:#8a8679;font-size:0.8rem;margin:12px 0;">2026-W16 前（4/14 以前）沒進 archive 體系，但每次 deploy 的版本都還在這裡能回看。</p>
+    <table>
+      <thead><tr><th>部署時間</th><th>版本摘要</th><th>操作</th></tr></thead>
+      <tbody>{cf_rows}</tbody>
+    </table>
+  </details>
 </div>
 </body>
 </html>"""

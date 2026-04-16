@@ -49,9 +49,14 @@ echo ""
 echo "▶ Step 2/3: 分析（近 30 天 + 近 7 天）"
 python3 scripts/analyze_by_topic.py --all --days 30
 
-# Step 3: 產 HTML（主頁 + 本週 archive + archive 列表）
+# Step 3: AI 分析（可選 — API 失敗不阻斷 pipeline）
 echo ""
-echo "▶ Step 3/3: 產出四 tab HTML + archive"
+echo "▶ Step 3/4: AI 洞察分析（Claude API）"
+python3 scripts/ai_analyze.py || echo "⚠️  AI 分析失敗，跳過（報告仍可產出）"
+
+# Step 4: 產 HTML（主頁 + 本週 archive + archive 列表）
+echo ""
+echo "▶ Step 4/4: 產出四 tab HTML + archive"
 python3 scripts/render_index.py
 python3 scripts/render_archive_index.py
 

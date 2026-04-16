@@ -73,11 +73,12 @@ def render():
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {{
-  --bg: #0a0a0a;
-  --card-bg: rgba(255,255,255,0.05);
-  --glass-border: rgba(255,255,255,0.1);
-  --text-primary: #fff;
-  --text-secondary: #a0a0a0;
+  --bg: #faf9f5;
+  --card-bg: #ffffff;
+  --glass-border: #e8e6dc;
+  --text-primary: #141413;
+  --text-secondary: #8a8679;
+  --accent-warm: #d97757;
 }}
 * {{ margin:0; padding:0; box-sizing:border-box; }}
 body {{ background:var(--bg); color:var(--text-primary); font-family:'Inter',sans-serif; line-height:1.6; }}
@@ -94,8 +95,8 @@ h1 {{ font-size:2.4rem; font-weight:800; letter-spacing:-1px; margin-top:10px; l
   padding:10px 24px; font-size:0.95rem; font-weight:600; cursor:pointer;
   transition:all 0.2s; font-family:inherit;
 }}
-.tab-btn:hover {{ background:rgba(255,255,255,0.1); }}
-.tab-btn.active {{ background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 0 30px color-mix(in srgb,var(--accent) 40%,transparent); }}
+.tab-btn:hover {{ background:#f3f1ea; }}
+.tab-btn.active {{ background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 25%,transparent); }}
 
 .panel {{ display:none; }}
 .panel.active {{ display:block; }}
@@ -123,17 +124,17 @@ td a:hover {{ color:var(--accent); }}
 .type-info {{ flex:1; }}
 .type-name {{ font-size:0.9rem; font-weight:600; }}
 .type-desc {{ font-size:0.75rem; color:var(--text-secondary); }}
-.type-bar-wrap {{ width:140px; height:8px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden; }}
+.type-bar-wrap {{ width:140px; height:8px; background:#f0ede4; border-radius:4px; overflow:hidden; }}
 .type-bar {{ height:100%; border-radius:4px; }}
 
 .hourly {{ display:grid; grid-template-columns:repeat(24,1fr); gap:3px; height:120px; align-items:end; margin-top:12px; }}
 .hour-bar {{ background:var(--accent); border-radius:3px 3px 0 0; opacity:0.7; min-height:2px; position:relative; transition:opacity 0.2s; }}
 .hour-bar:hover {{ opacity:1; }}
-.hour-bar:hover::after {{ content:attr(data-tooltip); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:#000; padding:4px 8px; border-radius:4px; font-size:11px; white-space:nowrap; pointer-events:none; }}
+.hour-bar:hover::after {{ content:attr(data-tooltip); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:#141413; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; white-space:nowrap; pointer-events:none; z-index:10; }}
 .hour-labels {{ display:grid; grid-template-columns:repeat(24,1fr); gap:3px; margin-top:6px; font-size:9px; color:var(--text-secondary); text-align:center; }}
 
 .daily {{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:12px; }}
-.day-cell {{ background:rgba(255,255,255,0.04); border-radius:8px; padding:10px; text-align:center; }}
+.day-cell {{ background:#f3f1ea; border-radius:8px; padding:10px; text-align:center; }}
 .day-cell .label {{ font-size:0.75rem; color:var(--text-secondary); }}
 .day-cell .count {{ font-size:1.2rem; font-weight:700; }}
 .day-cell .eng {{ font-size:0.7rem; color:var(--accent); }}
@@ -296,6 +297,44 @@ function renderPanel(topic, accent) {{
     </div>`;
   }});
   html += `</div></div>`;
+
+  // AI 洞察分析（若有）
+  const insight = d.ai_insight;
+  if (insight) {{
+    html += `<h2 class="section-title" style="margin-top:48px">🧠 AI 洞察分析</h2>`;
+    html += `<div class="card" style="border-left:4px solid ${{accent}};padding:28px;">`;
+    html += `<div style="font-size:1.2rem;font-weight:800;margin-bottom:20px;line-height:1.4;">${{escapeHtml(insight.headline)}}</div>`;
+
+    (insight.patterns || []).forEach((pat, i) => {{
+      html += `<div style="margin-bottom:24px${{i > 0 ? ';border-top:1px solid var(--glass-border);padding-top:20px' : ''}}">`;
+      html += `<div style="font-weight:700;font-size:1rem;margin-bottom:6px;">${{['🔥','✈️','💬','❤️'][i] || '📊'}} ${{escapeHtml(pat.name)}} <span style="color:${{accent}};font-size:0.85rem;font-weight:600;">${{escapeHtml(pat.trigger_type)}}</span></div>`;
+      html += `<div style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:12px;">${{escapeHtml(pat.desc)}}</div>`;
+
+      // 代表案例
+      (pat.examples || []).forEach(ex => {{
+        html += `<div style="background:var(--bg);border-radius:10px;padding:12px 16px;margin-bottom:8px;">`;
+        html += `<span style="font-weight:600;color:${{accent}}">${{escapeHtml(ex.author)}}</span>`;
+        html += ` <span style="font-size:0.8rem;color:var(--text-secondary)">${{escapeHtml(ex.metric)}}</span><br>`;
+        html += `<span style="font-size:0.88rem">「${{escapeHtml(ex.text)}}」</span>`;
+        html += `</div>`;
+      }});
+
+      // 操作要點
+      html += `<div style="margin-top:10px;padding:10px 14px;background:#f8f5ee;border-radius:8px;font-size:0.85rem;">`;
+      html += `<strong>操作要點：</strong>${{escapeHtml(pat.actionable)}}`;
+      html += `</div></div>`;
+    }});
+
+    // 隱藏發現
+    if (insight.hidden_finding) {{
+      html += `<div style="margin-top:20px;padding:16px 20px;background:linear-gradient(135deg,#141413,#2a2924);color:#fff;border-radius:12px;">`;
+      html += `<div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:2px;color:${{accent}};margin-bottom:8px;">Hidden Finding</div>`;
+      html += `<div style="font-size:0.95rem;line-height:1.6;">${{escapeHtml(insight.hidden_finding)}}</div>`;
+      html += `</div>`;
+    }}
+
+    html += `</div>`;
+  }}
 
   return html;
 }}
