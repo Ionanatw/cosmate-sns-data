@@ -14,6 +14,35 @@ CF_PROJECT = "threads-analytics-report"
 
 WEEK_PATTERN = re.compile(r"^(\d{4})-W(\d{2})$")
 
+# 非週報的歷史 / 平行 Pages 專案（手動維護清單）
+OTHER_REPORTS = [
+    {
+        "category": "早期獨立報告",
+        "items": [
+            {"title": "Threads 動漫主題貼文分析", "date": "2026-04-08",
+             "url": "https://cosmate-threads-anime.pages.dev",
+             "note": "四主題週報誕生前的動漫專項版"},
+            {"title": "Threads 交友軟體深度洞察報告", "date": "2026-04-07",
+             "url": "https://threads-dating-analysis.pages.dev",
+             "note": "第一版 dating-only 報告（有手動填的 repost/share）"},
+        ],
+    },
+    {
+        "category": "互動 / 測驗專案",
+        "items": [
+            {"title": "交友軟體心理測驗 — 找回你的靈魂伴侶", "date": "2026-04-13",
+             "url": "https://makefriends-quiz.pages.dev",
+             "note": "行銷測驗頁"},
+            {"title": "你的命定交友 App 是？", "date": "2026-04-09",
+             "url": "https://008-makefriends.pages.dev",
+             "note": "008 系列測驗"},
+            {"title": "2026 交通通行證 — COSER 專用", "date": "2026-04-01",
+             "url": "https://cowriding.pages.dev",
+             "note": "Coser 活動頁"},
+        ],
+    },
+]
+
 
 def iso_week_to_date(year, week):
     """ISO week → 該週週一的日期"""
@@ -145,6 +174,24 @@ def render():
     rows = "".join(format_row(a) for a in archives) or \
         '<tr><td colspan="3" style="text-align:center;color:#a0a0a0;padding:32px">目前沒有 archive</td></tr>'
 
+    # 其他報告 / 專案區塊
+    other_sections_html = ""
+    for cat in OTHER_REPORTS:
+        items_html = "".join(
+            f'<tr>'
+            f'<td><a href="{it["url"]}" target="_blank"><strong>{it["title"]}</strong><br>'
+            f'<span style="color:#8a8679;font-size:0.78rem;font-weight:400">{it["date"]}</span></a></td>'
+            f'<td style="font-size:0.82rem;color:#8a8679">{it["note"]}</td>'
+            f'<td><a href="{it["url"]}" target="_blank" style="color:#d97757">開啟 →</a></td>'
+            f'</tr>'
+            for it in cat["items"]
+        )
+        other_sections_html += (
+            f'<h2 style="font-size:1.1rem;font-weight:600;margin:32px 0 12px;color:#141413;">{cat["category"]}</h2>'
+            f'<table><thead><tr><th>專案</th><th>說明</th><th>操作</th></tr></thead>'
+            f'<tbody>{items_html}</tbody></table>'
+        )
+
     # Cloudflare 歷史部署（比 reports/archive/ 更早、或跨主題的版本都在）
     deployments = fetch_cloudflare_deployments()
 
@@ -207,11 +254,13 @@ tr:last-child td{{border-bottom:none;}}
     </div>
   </header>
 
-  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;color:#141413;">週次列表</h2>
+  <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:12px;color:#141413;">週次列表（Threads 四主題週報）</h2>
   <table>
     <thead><tr><th>週次 / 區間</th><th>本週各主題 Top 1</th><th>操作</th></tr></thead>
     <tbody>{rows}</tbody>
   </table>
+
+  {other_sections_html}
 
   <details style="margin-top:40px;">
     <summary style="cursor:pointer;font-size:1rem;font-weight:600;color:#141413;padding:8px 0;list-style:none;">
