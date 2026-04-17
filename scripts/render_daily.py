@@ -33,6 +33,7 @@ TOPIC_LABELS = {"anime": "動漫", "love": "交友", "cosplay": "Cosplay"}
 TOPIC_EMOJI = {"anime": "🎌", "love": "💔", "cosplay": "✨"}
 TOPIC_ACCENT = {"anime": "#0079C6", "love": "#c45a3c", "cosplay": "#7c3aed"}
 TOP_N = 5
+MIN_ENGAGEMENT = 500  # 總互動低於此不顯示
 
 API_URL = "https://api.anthropic.com/v1/messages"
 MODEL = "claude-sonnet-4-5-20250929"
@@ -110,7 +111,7 @@ def save_daily_raw(date_str, topic, posts):
     day_dir.mkdir(parents=True, exist_ok=True)
     out = {
         "date": date_str,
-        "window_hours": 36,
+        "window_hours": 72,
         "topic": topic,
         "scraped_at": datetime.now(TZ_TPE).isoformat(),
         "posts": posts,
@@ -140,10 +141,15 @@ def render():
         if not data:
             print(f"  ⚠️  {topic}: 無資料")
             continue
-        # 取 top N（已過濾到 --days 2 的 ~36h 窗口）
-        qualified = [p for p in data.get("top_posts", []) if p.get("primary_type") != "X"][:TOP_N]
-        if not qualified:
-            qualified = data.get("top_posts", [])[:TOP_N]
+        # 過濾：排除 Type X + 回覆 + 短文 + 低互動
+        all_posts = data.get("top_posts", [])
+        qualified = [
+            p for p in all_posts
+            if p.get("primary_type") != "X"
+            and p.get("total_engagement", 0) >= MIN_ENGAGEMENT
+            and not (p.get("text", "").startswith("正在回覆"))
+            and len(p.get("text", "")) >= 15
+        ][:TOP_N]
 
         # AI 點評
         if args.with_ai:
@@ -258,7 +264,7 @@ footer a {{ color:var(--accent); text-decoration:none; }}
   <header>
     <div class="edition">Daily Hot · {date_str}</div>
     <h1>Threads 今日最熱</h1>
-    <div class="sub">過去 36 小時 · {' × '.join(TOPIC_LABELS[t] for t in TOPICS if t in all_topics_data)}</div>
+    <div class="sub">過去 72 小時 · {' × '.join(TOPIC_LABELS[t] for t in TOPICS if t in all_topics_data)}</div>
     <div class="nav-links">
       <a href="https://threads-analytics-report.pages.dev/">← 週報</a>
       &nbsp;·&nbsp;
@@ -270,7 +276,7 @@ footer a {{ color:var(--accent); text-decoration:none; }}
   {panels}
 
   <footer>
-    36h window · Playwright scraper · AI by Claude · Generated {generated} GMT+8<br>
+    72h window · Playwright scraper · AI by Claude · Generated {generated} GMT+8<br>
     <a href="https://threads-analytics-report.pages.dev/">週報</a> · <a href="https://threads-analytics-report.pages.dev/reports/archive/">Archive</a>
   </footer>
 </div>
@@ -291,7 +297,7 @@ function fmt(n) {{ return n.toLocaleString(); }}
 
 function renderPanel(topic) {{
   const posts = DATA[topic];
-  if (!posts || !posts.length) return '<div class="empty">近 36 小時無符合標準貼文</div>';
+  if (!posts || !posts.length) return '<div class="empty">近 72 小時無達標貼文（門檻：≥500 互動）</div>';
 
   return posts.map((p, i) => {{
     const text = (p.text || '').replace(/\\n/g, '<br>').slice(0, 400);

@@ -15,20 +15,20 @@ MODE="${1:-full}"
 
 echo "════════════════════════════════════════"
 echo "  Threads 每日熱榜 — $(date '+%Y-%m-%d %H:%M')"
-echo "  動漫 × 交友 × Cosplay · 36h window"
+echo "  動漫 × 交友 × Cosplay · 72h window"
 echo "════════════════════════════════════════"
 
 # Step 1: 爬取（除非 skip-scrape）
 if [ "$MODE" != "skip-scrape" ]; then
   echo ""
-  echo "▶ Step 1/3: 爬取三主題（Playwright · scroll=4）"
-  python3 scripts/scrape_playwright_topics.py --scroll 4
+  echo "▶ Step 1/3: 爬取三主題（Playwright · scroll=10）"
+  python3 scripts/scrape_playwright_topics.py --scroll 10
 fi
 
 # Step 2: 分析（--days 2 ≈ 48h 涵蓋 36h 窗口）
 echo ""
-echo "▶ Step 2/3: 分析（近 2 天）"
-python3 scripts/analyze_by_topic.py --all --days 2
+echo "▶ Step 2/3: 分析（近 3 天 ≈ 72h）"
+python3 scripts/analyze_by_topic.py --all --days 3
 
 # Step 3: 渲染 daily HTML（含 AI 或不含）
 echo ""

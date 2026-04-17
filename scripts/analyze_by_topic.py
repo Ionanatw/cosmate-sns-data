@@ -36,6 +36,8 @@ TOPIC_FILE_PREFIXES = {
 
 # 主題 → 語言過濾（zh-tw = 只留繁體中文為主的貼文）
 TOPIC_LANG_FILTER = {
+    "anime": "zh-tw",
+    "love": "zh-tw",
     "cosplay": "zh-tw",
 }
 
