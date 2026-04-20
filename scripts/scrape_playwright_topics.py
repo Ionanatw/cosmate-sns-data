@@ -27,16 +27,19 @@ TZ_TPE = timezone(timedelta(hours=8))
 # 來自 scrape_multi_topic.py:TOPICS 的語意，但格式改成 scrape_threads 吃的
 TOPIC_TARGETS = {
     "anime": [
-        "hashtag:動漫", "keyword:咒術迴戰", "keyword:芙莉蓮", "keyword:我推的孩子",
-        "keyword:排球少年", "keyword:鬼滅之刃", "keyword:MAPPA", "keyword:動畫瘋",
+        "hashtag:動漫", "hashtag:漫畫",
+        "keyword:動畫瘋", "keyword:新番", "keyword:咒術迴戰", "keyword:芙莉蓮",
+        "keyword:黃泉使者", "keyword:MAPPA", "keyword:骨頭社", "keyword:漫畫",
+        "keyword:公仔開箱",
     ],
     "love": [
-        "hashtag:交友軟體", "keyword:曖昧", "keyword:暈船", "keyword:脫單",
+        "hashtag:交友軟體", "hashtag:交友APP",
+        "keyword:曖昧", "keyword:暈船", "keyword:脫單",
         "keyword:約會", "keyword:告白", "keyword:單身", "keyword:戀愛",
     ],
     "cosplay": [
-        "hashtag:cosplay", "hashtag:漫展", "keyword:coser", "keyword:cos服",
-        "keyword:CWT", "keyword:FF", "keyword:ACOSTA", "keyword:CCF",
+        "hashtag:cosplay", "hashtag:coser", "hashtag:cos服",
+        "keyword:CWT", "keyword:FF", "keyword:ACOSTA", "keyword:CCF", "keyword:WCS",
     ],
 }
 

@@ -4,3 +4,11 @@ node_modules/
 __pycache__/
 data/raw/
 data/per_topic/
+data/daily/
+
+# 下載的圖片資料夾（腳本產出）
+cosmatedaily_*/
+*.zip
+
+# macOS
+.DS_Store

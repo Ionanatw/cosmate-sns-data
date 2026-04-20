@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style A — Feed 卡片</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#faf9f5; --card:#fff; --border:#e8e6dc; --text:#141413; --muted:#8a8679; --accent:#d97757; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.5; }
+.container { max-width:680px; margin:0 auto; padding:24px 16px; }
+
+header { text-align:center; margin-bottom:32px; }
+.date { font-size:0.75rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+h1 { font-size:1.6rem; font-weight:800; margin:8px 0 4px; }
+.sub { font-size:0.85rem; color:var(--muted); }
+
+.tabs { display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+.tab { padding:8px 16px; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--muted); }
+.tab.active { background:var(--accent); color:#fff; }
+
+.card { display:flex; gap:16px; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--card); margin-bottom:12px; transition:box-shadow 0.2s; }
+.card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.06); }
+.rank { font-size:1.4rem; font-weight:800; color:var(--accent); min-width:32px; display:flex; align-items:flex-start; padding-top:2px; }
+.content { flex:1; min-width:0; }
+.author { font-weight:600; font-size:0.88rem; }
+.author a { color:var(--text); text-decoration:none; }
+.text { font-size:0.85rem; color:var(--muted); margin:6px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.metrics { display:flex; gap:12px; font-size:0.78rem; color:var(--muted); }
+.metrics span { display:flex; align-items:center; gap:3px; }
+.metrics .hot { color:var(--accent); font-weight:700; }
+
+.empty { text-align:center; color:var(--muted); padding:40px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="date">2026-04-16 · 每日熱榜</div>
+    <h1>Threads 今日最熱</h1>
+    <div class="sub">過去 36 小時 · 動漫 × 交友 × Cosplay</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active">🎌 動漫</button>
+    <button class="tab">💔 交友</button>
+    <button class="tab">✨ Cosplay</button>
+  </div>
+
+  <div class="card">
+    <div class="rank">#1</div>
+    <div class="content">
+      <div class="author"><a href="#">@i20mini</a></div>
+      <div class="text">芙莉蓮最新一話的結尾真的讓我哭死，這種「時間」的表達方式太殘忍了...你們有覺得嗎？</div>
+      <div class="metrics">
+        <span>❤️ 8,619</span>
+        <span>💬 55</span>
+        <span>🔁 335</span>
+        <span>✈️ 527</span>
+        <span class="hot">9,536 互動</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="rank">#2</div>
+    <div class="content">
+      <div class="author"><a href="#">@jeremy.93.jw</a></div>
+      <div class="text">咒術迴戰的蟑螂段落到底是怎麼畫出來的？？MAPPA 這次的作畫品質真的離譜好看</div>
+      <div class="metrics">
+        <span>❤️ 8,835</span>
+        <span>💬 48</span>
+        <span>🔁 147</span>
+        <span>✈️ 111</span>
+        <span class="hot">9,141 互動</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="rank">#3</div>
+    <div class="content">
+      <div class="author"><a href="#">@suyu.20_</a></div>
+      <div class="text">排球少年真的是你看了就會想去打球的那種動畫...下班後跑去找球友練了一小時</div>
+      <div class="metrics">
+        <span>❤️ 6,556</span>
+        <span>💬 77</span>
+        <span>🔁 205</span>
+        <span>✈️ 322</span>
+        <span class="hot">7,160 互動</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="rank">#4</div>
+    <div class="content">
+      <div class="author"><a href="#">@lindan.0214</a></div>
+      <div class="text">看完黃泉使者第一集，鋼鍊作者的敘事功力不減...Netflix 四月新番強到不行</div>
+      <div class="metrics">
+        <span>❤️ 5,774</span>
+        <span>💬 51</span>
+        <span>🔁 141</span>
+        <span>✈️ 897</span>
+        <span class="hot">6,863 互動</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="rank">#5</div>
+    <div class="content">
+      <div class="author"><a href="#">@6tan</a></div>
+      <div class="text">我推的孩子到底要怎麼完結才能讓人滿意...每週追著看真的心很累</div>
+      <div class="metrics">
+        <span>❤️ 6,261</span>
+        <span>💬 128</span>
+        <span>🔁 59</span>
+        <span>✈️ 62</span>
+        <span class="hot">6,510 互動</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

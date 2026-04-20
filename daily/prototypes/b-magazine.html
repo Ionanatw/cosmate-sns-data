@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style B — 雜誌排版</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#f5f0e8; --card:#fffdf7; --border:#ddd5c4; --text:#1a1a18; --muted:#7a7568; --accent:#c45a3c; --blue:#2563eb; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Noto Serif TC','Georgia',serif; line-height:1.7; }
+.container { max-width:900px; margin:0 auto; padding:40px 20px; }
+
+header { text-align:center; margin-bottom:48px; border-bottom:3px double var(--border); padding-bottom:32px; }
+.edition { font-family:'Inter',sans-serif; font-size:0.7rem; color:var(--muted); letter-spacing:4px; text-transform:uppercase; }
+h1 { font-size:2.6rem; font-weight:700; margin:12px 0; letter-spacing:2px; line-height:1.2; }
+.tagline { font-size:1rem; color:var(--muted); font-style:italic; }
+
+.tabs { display:flex; justify-content:center; gap:24px; margin-bottom:40px; }
+.tab { font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); cursor:pointer; padding-bottom:4px; border:none; background:none; }
+.tab.active { color:var(--accent); border-bottom:2px solid var(--accent); }
+
+/* Hero card */
+.hero { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:40px; margin-bottom:32px; position:relative; }
+.hero .label { font-family:'Inter',sans-serif; font-size:0.65rem; letter-spacing:3px; text-transform:uppercase; color:var(--accent); font-weight:700; }
+.hero h2 { font-size:1.8rem; font-weight:700; margin:12px 0; line-height:1.3; }
+.hero .excerpt { font-size:1.05rem; color:var(--muted); margin-bottom:16px; line-height:1.8; }
+.hero .meta { font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--muted); display:flex; gap:16px; }
+.hero .meta .num { color:var(--accent); font-weight:700; }
+.hero .rank-badge { position:absolute; top:-12px; right:24px; background:var(--accent); color:#fff; font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:800; padding:6px 14px; border-radius:20px; }
+
+/* Grid */
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.grid-card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:24px; }
+.grid-card .rank { font-family:'Inter',sans-serif; font-size:0.7rem; color:var(--accent); font-weight:800; }
+.grid-card h3 { font-size:1.1rem; margin:8px 0; font-weight:600; line-height:1.4; }
+.grid-card .author { font-family:'Inter',sans-serif; font-size:0.8rem; color:var(--muted); }
+.grid-card .stats { font-family:'Inter',sans-serif; font-size:0.75rem; color:var(--muted); margin-top:10px; }
+.grid-card .stats .hot { color:var(--accent); font-weight:700; }
+
+@media (max-width:640px) { .grid { grid-template-columns:1fr; } h1 { font-size:1.8rem; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="edition">Daily Edition · April 16, 2026</div>
+    <h1>Threads 今日速報</h1>
+    <div class="tagline">過去 36 小時，Threads 上最值得讀的三個圈子</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active">動漫</button>
+    <button class="tab">交友</button>
+    <button class="tab">Cosplay</button>
+  </div>
+
+  <div class="hero">
+    <div class="rank-badge">#1 TODAY</div>
+    <div class="label">🎌 動漫 · Top Story</div>
+    <h2>芙莉蓮最新一話的結尾讓全網哭成一片——「時間」的殘忍，只有活了千年的人才懂</h2>
+    <div class="excerpt">
+      @i20mini 的這篇貼文在不到 24 小時內累積近萬互動。留言區充滿劇情解讀和角色分析，展現 Threads 動漫圈的深度討論力。
+    </div>
+    <div class="meta">
+      <span>by <strong>@i20mini</strong></span>
+      <span>❤️ <span class="num">8,619</span></span>
+      <span>💬 55</span>
+      <span>🔁 335</span>
+      <span>✈️ <span class="num">527</span></span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="grid-card">
+      <div class="rank">#2</div>
+      <h3>咒術迴戰蟑螂段落作畫品質引爆 MAPPA 討論</h3>
+      <div class="author">@jeremy.93.jw</div>
+      <div class="stats">❤️ 8,835 · 💬 48 · <span class="hot">9,141 互動</span></div>
+    </div>
+    <div class="grid-card">
+      <div class="rank">#3</div>
+      <h3>排球少年讓人下班就想打球——運動番的魔力不減</h3>
+      <div class="author">@suyu.20_</div>
+      <div class="stats">❤️ 6,556 · 💬 77 · <span class="hot">7,160 互動</span></div>
+    </div>
+    <div class="grid-card">
+      <div class="rank">#4</div>
+      <h3>黃泉使者第一集：鋼鍊作者的敘事功力不減</h3>
+      <div class="author">@lindan.0214</div>
+      <div class="stats">❤️ 5,774 · 💬 51 · <span class="hot">6,863 互動</span></div>
+    </div>
+    <div class="grid-card">
+      <div class="rank">#5</div>
+      <h3>我推的孩子完結之前，每週追看的心都好累</h3>
+      <div class="author">@6tan</div>
+      <div class="stats">❤️ 6,261 · 💬 128 · <span class="hot">6,510 互動</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

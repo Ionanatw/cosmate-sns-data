@@ -22,7 +22,7 @@ except ImportError:
     _CA_FILE = None
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-PER_TOPIC_DIR = PROJECT_DIR / "data" / "per_topic"
+DAILY_DATA_DIR = PROJECT_DIR / "data" / "daily"
 DAILY_RAW_DIR = PROJECT_DIR / "data" / "raw" / "daily"
 OUTPUT_DIR = PROJECT_DIR / "daily"
 OUTPUT_HTML = OUTPUT_DIR / "index.html"
@@ -33,7 +33,7 @@ TOPIC_LABELS = {"anime": "動漫", "love": "交友", "cosplay": "Cosplay"}
 TOPIC_EMOJI = {"anime": "🎌", "love": "💔", "cosplay": "✨"}
 TOPIC_ACCENT = {"anime": "#0079C6", "love": "#c45a3c", "cosplay": "#7c3aed"}
 TOP_N = 5
-MIN_ENGAGEMENT = 500  # 總互動低於此不顯示
+MIN_ENGAGEMENT = 200  # 總互動低於此不顯示
 
 API_URL = "https://api.anthropic.com/v1/messages"
 MODEL = "claude-sonnet-4-5-20250929"
@@ -49,6 +49,58 @@ def load_api_key():
             if line.startswith("ANTHROPIC_API_KEY"):
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
     return None
+
+
+def batch_relevance_filter(posts, topic_label):
+    """用 AI 批次判斷每篇是否與主題相關（一次 API call）"""
+    api_key = load_api_key()
+    if not api_key or not posts:
+        return posts  # 無 key 就跳過過濾
+
+    posts_summary = "\n".join(
+        f"{i+1}. @{p['author']}: {p['text'][:100].replace(chr(10),' ')}"
+        for i, p in enumerate(posts)
+    )
+    prompt = f"""以下是從 Threads 搜尋「{topic_label}」抓到的貼文。請判斷每篇是否**真的在討論這個主題**。
+
+主題定義：
+- 動漫 = 動畫、漫畫、番劇、角色、聲優、作畫、新番、周邊
+- 交友 = 交友軟體、約會、曖昧、暈船、告白、脫單、戀愛關係
+- Cosplay = coser、cos服、漫展、場次、出角、攝影
+
+貼文列表：
+{posts_summary}
+
+請只回一行數字，用逗號分隔，每篇對應 1（相關）或 0（不相關）。
+例如 5 篇：1,1,0,1,0
+不要加任何其他文字。"""
+
+    body = json.dumps({
+        "model": MODEL, "max_tokens": 200,
+        "messages": [{"role": "user", "content": prompt}],
+    }).encode("utf-8")
+    req = urllib.request.Request(API_URL, data=body, method="POST", headers={
+        "content-type": "application/json",
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+    })
+    ctx = ssl.create_default_context(cafile=_CA_FILE) if _CA_FILE else ssl.create_default_context()
+    try:
+        with urllib.request.urlopen(req, timeout=60, context=ctx) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        text = result["content"][0]["text"].strip()
+        verdicts = [v.strip() for v in text.split(",")]
+        filtered = []
+        for i, p in enumerate(posts):
+            if i < len(verdicts) and verdicts[i] == "1":
+                filtered.append(p)
+            else:
+                print(f"    ❌ 過濾: @{p['author'][:15]} | {p['text'][:40].replace(chr(10),' ')}")
+        print(f"    AI 相關性: {len(posts)} → {len(filtered)} 篇")
+        return filtered
+    except Exception as e:
+        print(f"    ⚠️  AI 相關性判斷失敗: {e}")
+        return posts  # 失敗不阻斷
 
 
 def generate_ai_comment(post, topic_label):
@@ -99,7 +151,7 @@ def generate_ai_comment(post, topic_label):
 
 
 def load_topic_data(topic):
-    path = PER_TOPIC_DIR / f"{topic}.json"
+    path = DAILY_DATA_DIR / f"{topic}.json"
     if not path.exists():
         return None
     return json.load(open(path, encoding="utf-8"))

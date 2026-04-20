@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Card Sample — B hero 全尺寸</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#f5f0e8; --card:#fffdf7; --border:#ddd5c4; --text:#1a1a18; --muted:#7a7568; --accent:#c45a3c; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Noto Serif TC','Georgia',serif; line-height:1.7; }
+.container { max-width:720px; margin:0 auto; padding:40px 20px; }
+
+header { text-align:center; margin-bottom:40px; border-bottom:3px double var(--border); padding-bottom:24px; }
+.edition { font-family:'Inter',sans-serif; font-size:0.7rem; color:var(--muted); letter-spacing:4px; text-transform:uppercase; }
+h1 { font-size:2rem; font-weight:700; margin:8px 0; letter-spacing:1px; }
+.sub { font-size:0.9rem; color:var(--muted); font-style:italic; }
+
+.tabs { display:flex; justify-content:center; gap:24px; margin-bottom:32px; }
+.tab { font-family:'Inter',sans-serif; font-size:0.8rem; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--muted); cursor:pointer; padding-bottom:4px; border:none; background:none; }
+.tab.active { color:var(--accent); border-bottom:2px solid var(--accent); }
+
+/* 每張卡片（全部用 hero 尺寸） */
+.post-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:32px;
+  margin-bottom:24px;
+  position:relative;
+  transition:box-shadow 0.2s, border-color 0.2s;
+}
+.post-card:hover {
+  box-shadow:0 6px 24px rgba(0,0,0,0.08);
+  border-color:var(--accent);
+}
+.post-card .rank-badge {
+  position:absolute;
+  top:-10px;
+  left:24px;
+  background:var(--accent);
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:0.72rem;
+  font-weight:800;
+  padding:5px 14px;
+  border-radius:16px;
+  letter-spacing:1px;
+}
+.post-card .topic-tag {
+  font-family:'Inter',sans-serif;
+  font-size:0.65rem;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin-bottom:8px;
+}
+.post-card .author-row {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+.post-card .author {
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  font-size:0.95rem;
+}
+.post-card .author a { color:var(--text); text-decoration:none; }
+.post-card .author a:hover { color:var(--accent); }
+.post-card .time {
+  font-family:'Inter',sans-serif;
+  font-size:0.72rem;
+  color:var(--muted);
+}
+.post-card .type-badge {
+  font-family:'Inter',sans-serif;
+  font-size:0.65rem;
+  font-weight:700;
+  padding:2px 8px;
+  border-radius:4px;
+  background:#f0ede4;
+  color:var(--muted);
+}
+
+/* 原文區 */
+.post-card .original-text {
+  font-size:1.05rem;
+  line-height:1.85;
+  margin:16px 0;
+  padding:16px 20px;
+  background:#faf8f2;
+  border-left:3px solid var(--border);
+  border-radius:0 6px 6px 0;
+  color:var(--text);
+}
+
+/* AI 點評 */
+.post-card .ai-comment {
+  margin:16px 0;
+  padding:14px 18px;
+  background:linear-gradient(135deg, #1a1a18, #2a2924);
+  color:#f5f0e8;
+  border-radius:8px;
+  font-family:'Inter',sans-serif;
+  font-size:0.88rem;
+  line-height:1.65;
+}
+.post-card .ai-comment .label {
+  font-size:0.65rem;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:6px;
+  display:block;
+}
+
+/* 互動數 */
+.post-card .metrics {
+  display:flex;
+  gap:16px;
+  font-family:'Inter',sans-serif;
+  font-size:0.8rem;
+  color:var(--muted);
+  margin-top:16px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.post-card .metrics span { display:flex; align-items:center; gap:4px; }
+.post-card .metrics .total { color:var(--accent); font-weight:800; font-size:0.9rem; margin-left:auto; }
+
+/* 分隔線 */
+.divider { height:1px; background:var(--border); margin:8px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="edition">Daily Hot · April 16, 2026</div>
+    <h1>Threads 今日最熱</h1>
+    <div class="sub">過去 36 小時 · 動漫 × 交友 × Cosplay</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active">動漫</button>
+    <button class="tab">交友</button>
+    <button class="tab">Cosplay</button>
+  </div>
+
+  <!-- ===== 示範卡面 #1 ===== -->
+  <a href="https://www.threads.com/@i20mini/post/DWb_YfGEq0f" target="_blank" rel="noopener" class="post-card" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+    <div class="rank-badge">#1</div>
+    <div class="topic-tag">🎌 動漫</div>
+
+    <div class="author-row">
+      <div class="author">@i20mini</div>
+      <div class="time">2026-04-15 10:06</div>
+      <div class="type-badge">✈️ Type B 私域擴散</div>
+    </div>
+
+    <div class="original-text">
+      第一季開始<br>
+      （勇者欣梅爾死後20年）<br>
+      第二季結束<br>
+      （勇者欣梅爾死後30年）<br><br>
+      芙莉蓮的10年旅程，對她來說不過是眨眼的瞬間。但對觀眾來說，那是一整個青春。<br>
+      這才是時間魔法最殘忍的地方——不是讓你遺忘，而是讓你意識到自己終將被遺忘。
+    </div>
+
+    <div class="ai-comment">
+      <span class="label">🧠 AI 點評</span>
+      這篇用「第一季 vs 第二季」的時間軸對比，精準觸發了芙莉蓮核心主題「時間的重量」。高分享率（✈️527）暗示觀眾不是只被感動，而是想讓朋友也感受到——這正是 Type B 私域擴散的典型驅動力。CosMate 可模仿此手法：用番劇時間線做對比圖，搭配一句「你的 cosplay 旅程走了幾年」引發共鳴。
+    </div>
+
+    <div class="metrics">
+      <span>❤️ 8,619</span>
+      <span>💬 55</span>
+      <span>🔁 335</span>
+      <span>✈️ 527</span>
+      <span class="total">9,536 互動</span>
+    </div>
+  </a>
+  <!-- ===== END 示範卡面 ===== -->
+
+  <div style="text-align:center;color:var(--muted);font-size:0.85rem;padding:24px;">
+    ⬇ 確認後批次產出 #2 ~ #5 ⬇
+  </div>
+</div>
+</body>
+</html>

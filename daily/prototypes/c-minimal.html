@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style C — 極簡列表</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#fff; --text:#111; --muted:#888; --accent:#e63946; --hover:#f8f8f6; --border:#eee; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; line-height:1.5; }
+.container { max-width:720px; margin:0 auto; padding:20px 16px; }
+
+header { margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid var(--text); }
+.row { display:flex; justify-content:space-between; align-items:baseline; }
+h1 { font-size:1.1rem; font-weight:700; }
+.date { font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--muted); }
+
+.tabs { display:flex; gap:0; margin-bottom:16px; }
+.tab { flex:1; text-align:center; padding:8px; font-size:0.8rem; font-weight:700; cursor:pointer; border:none; background:none; color:var(--muted); border-bottom:2px solid var(--border); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; padding:6px 0; border-bottom:1px solid var(--border); }
+th.num { text-align:right; }
+td { padding:10px 0; border-bottom:1px solid var(--border); vertical-align:top; }
+td.num { text-align:right; font-family:'JetBrains Mono',monospace; font-size:0.8rem; white-space:nowrap; }
+tr:hover { background:var(--hover); }
+
+.rank-cell { width:28px; font-weight:700; color:var(--accent); font-family:'JetBrains Mono',monospace; }
+.author-cell { font-weight:600; font-size:0.85rem; white-space:nowrap; }
+.author-cell a { color:var(--text); text-decoration:none; }
+.text-cell { color:var(--muted); font-size:0.82rem; max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.total-cell { font-weight:700; color:var(--accent); }
+
+footer { margin-top:24px; padding-top:12px; border-top:1px solid var(--border); font-size:0.7rem; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="row">
+      <h1>THREADS DAILY HOT</h1>
+      <div class="date">2026-04-16 07:00 GMT+8</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active">🎌 ANIME</button>
+    <button class="tab">💔 LOVE</button>
+    <button class="tab">✨ COS</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>AUTHOR</th>
+        <th>CONTENT</th>
+        <th class="num">❤️</th>
+        <th class="num">💬</th>
+        <th class="num">🔁</th>
+        <th class="num">✈️</th>
+        <th class="num">TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="rank-cell">01</td>
+        <td class="author-cell"><a href="#">@i20mini</a></td>
+        <td class="text-cell">芙莉蓮最新一話的結尾真的讓我哭死</td>
+        <td class="num">8,619</td>
+        <td class="num">55</td>
+        <td class="num">335</td>
+        <td class="num">527</td>
+        <td class="num total-cell">9,536</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">02</td>
+        <td class="author-cell"><a href="#">@jeremy.93.jw</a></td>
+        <td class="text-cell">咒術迴戰蟑螂段落的作畫品質真的離譜好看</td>
+        <td class="num">8,835</td>
+        <td class="num">48</td>
+        <td class="num">147</td>
+        <td class="num">111</td>
+        <td class="num total-cell">9,141</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">03</td>
+        <td class="author-cell"><a href="#">@suyu.20_</a></td>
+        <td class="text-cell">排球少年真的是你看了就會想去打球的那種動畫</td>
+        <td class="num">6,556</td>
+        <td class="num">77</td>
+        <td class="num">205</td>
+        <td class="num">322</td>
+        <td class="num total-cell">7,160</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">04</td>
+        <td class="author-cell"><a href="#">@lindan.0214</a></td>
+        <td class="text-cell">黃泉使者第一集 鋼鍊作者的敘事功力不減</td>
+        <td class="num">5,774</td>
+        <td class="num">51</td>
+        <td class="num">141</td>
+        <td class="num">897</td>
+        <td class="num total-cell">6,863</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">05</td>
+        <td class="author-cell"><a href="#">@6tan</a></td>
+        <td class="text-cell">我推的孩子到底要怎麼完結才能讓人滿意</td>
+        <td class="num">6,261</td>
+        <td class="num">128</td>
+        <td class="num">59</td>
+        <td class="num">62</td>
+        <td class="num total-cell">6,510</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">06</td>
+        <td class="author-cell"><a href="#">@weeeeee6918</a></td>
+        <td class="text-cell">動畫瘋新番整理 這季到底要追幾部啦</td>
+        <td class="num">95</td>
+        <td class="num">950</td>
+        <td class="num">2,549</td>
+        <td class="num">0</td>
+        <td class="num total-cell">3,594</td>
+      </tr>
+      <tr>
+        <td class="rank-cell">07</td>
+        <td class="author-cell"><a href="#">@jia_you_04</a></td>
+        <td class="text-cell">有人跟我一樣覺得新番太多追不完嗎</td>
+        <td class="num">3,013</td>
+        <td class="num">45</td>
+        <td class="num">138</td>
+        <td class="num">125</td>
+        <td class="num total-cell">3,321</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <footer>
+    36h window · Playwright scraper · Powered by Claude · <a href="../" style="color:var(--accent)">← Weekly Report</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -215,11 +215,16 @@ def save_result(topic, result):
 
 
 def main():
+    global OUTPUT_DIR
     parser = argparse.ArgumentParser()
     parser.add_argument("--topic", choices=list(TOPIC_FILE_PREFIXES.keys()))
     parser.add_argument("--all", action="store_true", help="跑全部三個主題")
     parser.add_argument("--days", type=int, default=30, help="主報告時間窗（預設 30 天）")
+    parser.add_argument("--output-dir", default=None, help="覆蓋輸出目錄（預設 data/per_topic）")
     args = parser.parse_args()
+
+    if args.output_dir:
+        OUTPUT_DIR = PROJECT_DIR / args.output_dir
 
     if not args.topic and not args.all:
         parser.error("需指定 --topic 或 --all")

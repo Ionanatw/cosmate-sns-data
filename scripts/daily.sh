@@ -28,7 +28,7 @@ fi
 # Step 2: 分析（--days 2 ≈ 48h 涵蓋 36h 窗口）
 echo ""
 echo "▶ Step 2/3: 分析（近 3 天 ≈ 72h）"
-python3 scripts/analyze_by_topic.py --all --days 3
+python3 scripts/analyze_by_topic.py --all --days 3 --output-dir data/daily
 
 # Step 3: 渲染 daily HTML（含 AI 或不含）
 echo ""
