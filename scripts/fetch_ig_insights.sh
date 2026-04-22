@@ -242,8 +242,9 @@ if summary_file:
 # ──────────────────────────────────────────
 # 主流程
 # ──────────────────────────────────────────
-# 載入 Notion 設定（共用 Threads 的 .env）
-source /Users/ionachen/Documents/Claude/project/.env.threads
+# 載入 Notion 設定（本機有 .env.threads 才 source；GHA 環境由 workflow env: 提供）
+_ENV_THREADS2="/Users/ionachen/Documents/Claude/project/.env.threads"
+[ -f "$_ENV_THREADS2" ] && source "$_ENV_THREADS2"
 
 case "$ACCOUNT" in
   all)
