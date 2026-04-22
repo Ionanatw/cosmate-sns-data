@@ -12,8 +12,9 @@ set -euo pipefail
 _CERT_FILE=$(python3 -c "import certifi; print(certifi.where())" 2>/dev/null || true)
 [ -n "$_CERT_FILE" ] && export SSL_CERT_FILE="$_CERT_FILE"
 
-# 載入 Token
-source /Users/ionachen/Documents/Claude/project/.env.threads
+# 載入 Token（本機有 .env.threads 才 source；GHA 環境由 workflow env: 提供）
+_ENV_THREADS="/Users/ionachen/Documents/Claude/project/.env.threads"
+[ -f "$_ENV_THREADS" ] && source "$_ENV_THREADS"
 
 DAYS="${1:-14}"
 ACCOUNT="${2:-cosmate}"

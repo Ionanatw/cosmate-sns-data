@@ -12,13 +12,9 @@ set -euo pipefail
 _CERT_FILE=$(python3 -c "import certifi; print(certifi.where())" 2>/dev/null || true)
 [ -n "$_CERT_FILE" ] && export SSL_CERT_FILE="$_CERT_FILE"
 
-# 載入 Token
-ENV_FILE="/Users/ionachen/Documents/Claude/project/.env.instagram"
-if [ ! -f "$ENV_FILE" ]; then
-  echo "❌ 找不到 $ENV_FILE，請先設定 IG Token"
-  exit 1
-fi
-source "$ENV_FILE"
+# 載入 Token（本機有 .env.instagram 才 source；GHA 環境由 workflow env: 提供）
+_ENV_IG="/Users/ionachen/Documents/Claude/project/.env.instagram"
+[ -f "$_ENV_IG" ] && source "$_ENV_IG"
 
 DAYS="${1:-14}"
 ACCOUNT="${2:-cosmate}"
