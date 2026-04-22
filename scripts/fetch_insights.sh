@@ -72,7 +72,7 @@ fetch_single() {
   esac
 
   local SINCE
-  SINCE=$(date -v-${DAYS}d +%s)
+  SINCE=$(python3 -c "import time; print(int(time.time()) - ${DAYS} * 86400)")
   local TMPDIR="/tmp/threads_insights_${ACCT}_$$"
   mkdir -p "$TMPDIR"
 

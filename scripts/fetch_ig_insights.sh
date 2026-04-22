@@ -68,7 +68,7 @@ fetch_single() {
   esac
 
   local SINCE
-  SINCE=$(date -v-${DAYS}d +%Y-%m-%dT00:00:00)
+  SINCE=$(python3 -c "from datetime import datetime, timedelta; print((datetime.now() - timedelta(days=${DAYS})).strftime('%Y-%m-%dT00:00:00'))")
   local TMPDIR="/tmp/ig_insights_${ACCT}_$$"
   mkdir -p "$TMPDIR"
 
