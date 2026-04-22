@@ -1,0 +1,64 @@
+name: Threads/IG Metrics Daily Sync
+
+on:
+  schedule:
+    - cron: '30 1 * * *'  # 09:30 GMT+8 (Taiwan time)
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '回溯天數'
+        default: '3'
+      accounts:
+        description: '帳號（all / cosmate / olie / dadana / kiki / amy）'
+        default: 'all'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+        # sync_to_notion.py / sync_ig_to_notion.py 只用 Python stdlib，不需 pip install
+
+      - name: Sync Threads metrics (all 5 accounts)
+        env:
+          THREADS_TOKEN_COSMATE:    ${{ secrets.THREADS_TOKEN_COSMATE }}
+          THREADS_USERID_COSMATE:   ${{ secrets.THREADS_USERID_COSMATE }}
+          THREADS_USERNAME_COSMATE: ${{ secrets.THREADS_USERNAME_COSMATE }}
+          THREADS_TOKEN_OLIE:       ${{ secrets.THREADS_TOKEN_OLIE }}
+          THREADS_USERID_OLIE:      ${{ secrets.THREADS_USERID_OLIE }}
+          THREADS_USERNAME_OLIE:    ${{ secrets.THREADS_USERNAME_OLIE }}
+          THREADS_TOKEN_DADANA:     ${{ secrets.THREADS_TOKEN_DADANA }}
+          THREADS_USERID_DADANA:    ${{ secrets.THREADS_USERID_DADANA }}
+          THREADS_USERNAME_DADANA:  ${{ secrets.THREADS_USERNAME_DADANA }}
+          THREADS_TOKEN_KIKI:       ${{ secrets.THREADS_TOKEN_KIKI }}
+          THREADS_USERID_KIKI:      ${{ secrets.THREADS_USERID_KIKI }}
+          THREADS_USERNAME_KIKI:    ${{ secrets.THREADS_USERNAME_KIKI }}
+          THREADS_TOKEN_AMY:        ${{ secrets.THREADS_TOKEN_AMY }}
+          THREADS_USERID_AMY:       ${{ secrets.THREADS_USERID_AMY }}
+          THREADS_USERNAME_AMY:     ${{ secrets.THREADS_USERNAME_AMY }}
+          NOTION_TOKEN:             ${{ secrets.NOTION_TOKEN }}
+          NOTION_THREADS_DB_ID:     ${{ secrets.NOTION_THREADS_DB_ID }}
+          NOTION_POSTS_DB_ID:       ${{ secrets.NOTION_POSTS_DB_ID }}
+        run: |
+          DAYS="${{ github.event.inputs.days || '3' }}"
+          ACCOUNTS="${{ github.event.inputs.accounts || 'all' }}"
+          bash scripts/fetch_insights.sh "$DAYS" "$ACCOUNTS" --sync-notion 2>&1
+
+      - name: Sync Instagram metrics (cosmate)
+        if: always()
+        env:
+          IG_TOKEN_COSMATE:    ${{ secrets.IG_TOKEN_COSMATE }}
+          IG_USERID_COSMATE:   ${{ secrets.IG_USERID_COSMATE }}
+          IG_USERNAME_COSMATE: ${{ secrets.IG_USERNAME_COSMATE }}
+          NOTION_TOKEN:        ${{ secrets.NOTION_TOKEN }}
+          NOTION_POSTS_DB_ID:  ${{ secrets.NOTION_POSTS_DB_ID }}
+        run: |
+          bash scripts/fetch_ig_insights.sh 3 cosmate --sync-notion 2>&1
+
+      - name: Summary
+        if: always()
+        run: echo "Metrics sync completed at $(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M GMT+8')"
