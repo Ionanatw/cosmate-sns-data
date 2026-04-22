@@ -26,6 +26,12 @@ IG_KEYS=(
   IG_USERNAME_COSMATE
 )
 
+get_env_value() {
+  local env_file="$1"
+  local key="$2"
+  grep -E "^${key}=" "$env_file" | head -1 | cut -d'=' -f2-
+}
+
 upload_keys() {
   local env_file="$1"
   shift
@@ -36,15 +42,8 @@ upload_keys() {
     return
   fi
 
-  # 載入 env 檔（只取 KEY=VALUE 格式，跳過空行和 #）
-  declare -A env_map
-  while IFS='=' read -r key val; do
-    [[ -z "$key" || "$key" =~ ^# ]] && continue
-    env_map["$key"]="$val"
-  done < <(grep -E '^[A-Z_]+=.' "$env_file")
-
   for key in "${keys[@]}"; do
-    val="${env_map[$key]:-}"
+    val=$(get_env_value "$env_file" "$key")
     if [[ -z "$val" ]]; then
       echo "⚠️  $key 不在 $env_file，跳過"
       continue
