@@ -49,7 +49,7 @@ upload_keys() {
       continue
     fi
     echo -n "  uploading $key ... "
-    echo "$val" | gh secret set "$key" --repo "$REPO" --body -
+    printf '%s' "$val" | gh secret set "$key" --repo "$REPO" --body -
     echo "✅"
   done
 }
