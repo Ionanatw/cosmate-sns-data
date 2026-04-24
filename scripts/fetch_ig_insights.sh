@@ -19,6 +19,11 @@ _ENV_IG="/Users/ionachen/Documents/Claude/project/.env.instagram"
 DAYS="${1:-14}"
 ACCOUNT="${2:-cosmate}"
 
+if ! [[ "$DAYS" =~ ^[0-9]+$ ]]; then
+  echo "❌ DAYS 必須是正整數: $DAYS"
+  exit 1
+fi
+
 # 解析 --sync-notion flag
 SYNC_NOTION=0
 for arg in "$@"; do
@@ -86,7 +91,7 @@ fetch_single() {
       ERROR_MSG=$(echo "$RESULT" | python3 -c "import sys,json; print(json.load(sys.stdin)['error']['message'])" 2>/dev/null || echo "未知錯誤")
       echo "⚠️ @${USERNAME} IG token 過期或無效，跳過（${ERROR_MSG}）"
       rm -rf "$TMPDIR"
-      return 0
+      return 1
     fi
 
     local NEXT
@@ -253,9 +258,14 @@ case "$ACCOUNT" in
     echo "════════════════════════════════════════════════════════════════════════════"
     echo ""
 
+    _OK=0
     for ACC in "${ALL_ACCOUNTS[@]}"; do
-      fetch_single "$ACC" "$DAYS" "$SUMMARY_FILE" || true
+      fetch_single "$ACC" "$DAYS" "$SUMMARY_FILE" && _OK=$((_OK+1)) || true
     done
+    if [ "$_OK" -eq 0 ]; then
+      echo "❌ 所有 IG 帳號 token 均失效，Notion 未更新"
+      exit 1
+    fi
 
     echo "════════════════════════════════════════════════════════════════════════════"
     if [ -f "$SUMMARY_FILE" ]; then
