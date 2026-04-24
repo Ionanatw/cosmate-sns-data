@@ -29,7 +29,13 @@ IG_KEYS=(
 get_env_value() {
   local env_file="$1"
   local key="$2"
-  grep -E "^${key}=" "$env_file" | head -1 | cut -d'=' -f2-
+  local val
+  # cut -f2- 保留 = 號後所有內容（token 本身可能含 =）
+  val=$(grep -E "^${key}=" "$env_file" | head -1 | cut -d'=' -f2- | tr -d '\r')
+  # 去掉頭尾引號（bash source 會自動去，但 grep|cut 不會）
+  val="${val#\"}" ; val="${val%\"}"
+  val="${val#\'}" ; val="${val%\'}"
+  printf '%s' "$val"
 }
 
 upload_keys() {
