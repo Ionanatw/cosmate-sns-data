@@ -43,7 +43,7 @@ POSTS_DB_METRICS_MAP = [
     ("Saved",  "saved"),
     ("互動次數", "total_interactions"),
     ("平均觀看秒數", "ig_reels_avg_watch_time"),
-    ("總觀看時間(分)", "ig_reels_video_view_total_time"),
+    ("總觀看時間(分) ", "ig_reels_video_view_total_time"),
 ]
 
 
