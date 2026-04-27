@@ -147,9 +147,9 @@ for p in posts:
     if [ "$MTYPE" = "VIDEO" ] || [ "$MTYPE" = "REEL" ]; then
       METRICS="views,reach,saved,shares,likes,comments,total_interactions,ig_reels_avg_watch_time,ig_reels_video_view_total_time"
     elif [ "$MTYPE" = "CAROUSEL_ALBUM" ]; then
-      METRICS="impressions,reach,saved,shares,likes,comments,total_interactions"
+      METRICS="reach,saved,shares,likes,comments,total_interactions"
     else
-      METRICS="impressions,reach,saved,shares,likes,comments,total_interactions"
+      METRICS="reach,saved,shares,likes,comments,total_interactions"
     fi
     curl -s "https://graph.facebook.com/v19.0/${MID}/insights?metric=${METRICS}&access_token=${TOKEN}" > "$TMPDIR/insight_${MID}.json"
   done
