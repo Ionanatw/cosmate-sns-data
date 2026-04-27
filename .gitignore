@@ -10,5 +10,12 @@ data/daily/
 cosmatedaily_*/
 *.zip
 
+# Claude 記憶（私有，不進 repo）
+memory/
+
+# 週報產出（weekly.sh 自動重生，不需 track）
+index.html
+server.py
+
 # macOS
 .DS_Store
