@@ -58,7 +58,8 @@ jobs:
           NOTION_TOKEN:        ${{ secrets.NOTION_TOKEN }}
           NOTION_POSTS_DB_ID:  ${{ secrets.NOTION_POSTS_DB_ID }}
         run: |
-          bash scripts/fetch_ig_insights.sh 3 cosmate --sync-notion 2>&1
+          DAYS="${{ github.event.inputs.days || '3' }}"
+          bash scripts/fetch_ig_insights.sh "$DAYS" cosmate --sync-notion 2>&1
 
       - name: Summary
         if: always()
