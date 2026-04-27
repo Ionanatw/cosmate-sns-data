@@ -33,7 +33,7 @@ ACCOUNT_TO_POSTER = {
 
 # Posts DB 欄位 → IG metrics key
 POSTS_DB_METRICS_MAP = [
-    ("瀏覽數", "views"),      # IG views = IG端觀看次數（不含FB跨平台）
+    ("瀏覽數", "views"),      # VIDEO/REEL=plays; IMAGE/CAROUSEL=impressions（在 _convert_metrics 統一）
     ("讚",     "likes"),
     ("留言",   "comments"),
     ("轉發",   None),         # IG 沒有轉發概念
@@ -41,7 +41,6 @@ POSTS_DB_METRICS_MAP = [
     ("引用",   None),         # IG 沒有引用概念
     ("Reach",  "reach"),
     ("Saved",  "saved"),
-    ("Impressions", "impressions"),
     ("互動次數", "total_interactions"),
     ("平均觀看秒數", "ig_reels_avg_watch_time"),
     ("總觀看時間(分)", "ig_reels_video_view_total_time"),
@@ -50,6 +49,9 @@ POSTS_DB_METRICS_MAP = [
 
 def _convert_metrics(metrics):
     """Convert raw API values to display-friendly units."""
+    # IMAGE/CAROUSEL 用 impressions；統一進 views 讓兩平台共用「瀏覽數」欄位
+    if "views" not in metrics and "impressions" in metrics:
+        metrics["views"] = metrics.pop("impressions")
     # avg watch time: ms → seconds (rounded to 1 decimal)
     if "ig_reels_avg_watch_time" in metrics:
         metrics["ig_reels_avg_watch_time"] = round(metrics["ig_reels_avg_watch_time"] / 1000, 1)
