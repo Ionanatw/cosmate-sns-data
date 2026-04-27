@@ -98,13 +98,15 @@ fetch_single() {
     NEXT=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('paging',{}).get('next',''))" 2>/dev/null || echo "")
 
     # 過濾日期範圍內的貼文
+    echo "$ALL_POSTS" > "$TMPDIR/all_posts_cur.json"
+    echo "$RESULT" > "$TMPDIR/result_cur.json"
     ALL_POSTS=$(python3 -c "
 import sys, json
 from datetime import datetime
 
 since_str = sys.argv[1]
-old = json.loads(sys.argv[2])
-new_data = json.loads(sys.argv[3]).get('data', [])
+old = json.load(open('$TMPDIR/all_posts_cur.json'))
+new_data = json.load(open('$TMPDIR/result_cur.json')).get('data', [])
 
 since_dt = datetime.fromisoformat(since_str)
 
@@ -119,7 +121,7 @@ for p in new_data:
         old.append(p)
 
 print(json.dumps(old))
-" "$SINCE" "$ALL_POSTS" "$RESULT")
+" "$SINCE")
 
     if [ -z "$NEXT" ]; then break; fi
     URL="$NEXT"
