@@ -1,0 +1,30 @@
+name: Token 健康檢查
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # 每週日 00:00 UTC = 08:00 GMT+8
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Check all API tokens
+        env:
+          THREADS_TOKEN_COSMATE: ${{ secrets.THREADS_TOKEN_COSMATE }}
+          THREADS_TOKEN_OLIE: ${{ secrets.THREADS_TOKEN_OLIE }}
+          THREADS_TOKEN_DADANA: ${{ secrets.THREADS_TOKEN_DADANA }}
+          THREADS_TOKEN_KIKI: ${{ secrets.THREADS_TOKEN_KIKI }}
+          THREADS_TOKEN_AMY: ${{ secrets.THREADS_TOKEN_AMY }}
+          IG_TOKEN_COSMATE: ${{ secrets.IG_TOKEN_COSMATE }}
+        run: python3 scripts/check_token_health.py

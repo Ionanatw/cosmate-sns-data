@@ -1,0 +1,28 @@
+name: 工作流失敗通知
+
+on:
+  workflow_run:
+    workflows:
+      - "Threads 每日熱榜"
+      - "Threads 週一熱榜"
+      - "Threads/IG Metrics Daily Sync"
+      - "Token 健康檢查"
+    types: [completed]
+
+jobs:
+  notify:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          WORKFLOW_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_TIME: ${{ github.event.workflow_run.created_at }}
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\": \"${TELEGRAM_CHAT_ID}\", \"text\": \"❌ 工作流失敗\n\`${WORKFLOW_NAME}\`\n時間：${WORKFLOW_TIME}\n查看：${WORKFLOW_URL}\", \"parse_mode\": \"Markdown\"}" \
+            "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
