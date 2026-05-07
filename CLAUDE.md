@@ -142,5 +142,6 @@ CI uses `wrangler-action@v3` for deploy (no local wrangler needed in CI). Python
 - Playwright scraper delegates to: `/Users/ionachen/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py`
 - Cloudflare Pages project name: `threads-analytics-report`
 - Notion Posts DB ID (local reference): `2106fedce91a81389a54c223533d481b`
+- Notion Ideas DB ID (used by telegram-bot `/gen` flow): `2106fedce91a818c959ce4a991dd238b`
 - Threads accounts tracked: `cosmate`, `olie`, `dadana`, `kiki`, `amy`
 - IG accounts tracked: `cosmate` only (expandable in `fetch_ig_insights.sh:ALL_ACCOUNTS`)
