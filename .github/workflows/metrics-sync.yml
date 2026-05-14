@@ -7,7 +7,7 @@ on:
     inputs:
       days:
         description: '回溯天數'
-        default: '3'
+        default: '5'
       accounts:
         description: '帳號（all / cosmate / olie / dadana / kiki / amy）'
         default: 'all'
@@ -45,7 +45,7 @@ jobs:
           NOTION_THREADS_DB_ID:     ${{ secrets.NOTION_THREADS_DB_ID }}
           NOTION_POSTS_DB_ID:       ${{ secrets.NOTION_POSTS_DB_ID }}
         run: |
-          DAYS="${{ github.event.inputs.days || '3' }}"
+          DAYS="${{ github.event.inputs.days || '5' }}"
           ACCOUNTS="${{ github.event.inputs.accounts || 'all' }}"
           bash scripts/fetch_insights.sh "$DAYS" "$ACCOUNTS" --sync-notion 2>&1
 
@@ -58,7 +58,7 @@ jobs:
           NOTION_TOKEN:        ${{ secrets.NOTION_TOKEN }}
           NOTION_POSTS_DB_ID:  ${{ secrets.NOTION_POSTS_DB_ID }}
         run: |
-          DAYS="${{ github.event.inputs.days || '3' }}"
+          DAYS="${{ github.event.inputs.days || '5' }}"
           bash scripts/fetch_ig_insights.sh "$DAYS" cosmate --sync-notion 2>&1
 
       - name: Summary
