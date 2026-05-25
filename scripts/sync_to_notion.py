@@ -98,6 +98,7 @@ ACCOUNT_TO_POSTER = {
     "olie":    "動漫宅Olie.Huang",
     "dadana":  "宅人Dadana",
     "kiki":    "交友中的Kiki",
+    "amy":     "社畜Amy",
 }
 
 POSTS_DB_METRICS_MAP = [
@@ -251,6 +252,10 @@ def main():
                 if existing:
                     existing_page_id = existing["id"]
                     update_props = build_posts_db_update_props(metrics)
+                    existing_poster = existing.get("properties", {}).get("貼文人", {}).get("multi_select", [])
+                    poster_name = ACCOUNT_TO_POSTER.get(args.account)
+                    if poster_name and not existing_poster:
+                        update_props["貼文人"] = {"multi_select": [{"name": poster_name}]}
                     if update_props:
                         r = notion_request("PATCH", f"/pages/{existing_page_id}", args.token, {"properties": update_props})
                         if r:
