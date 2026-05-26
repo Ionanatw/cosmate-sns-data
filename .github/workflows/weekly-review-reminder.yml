@@ -1,0 +1,33 @@
+name: Trending Signals 週審提醒
+
+on:
+  schedule:
+    # 週一 04:30 UTC = 12:30 GMT+8（weekly 01:00 UTC 跑 + 預留 ~30 min + 3hr buffer = 鴿王午餐後該審稿了）
+    - cron: '30 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install certifi
+
+      - name: 查 pending + 送 Telegram
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 scripts/notify_pending_signals.py
