@@ -22,7 +22,9 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 完整 pipeline：setup + Playwright chromium 安裝 + 3 主題 scrape + cosmate Graph API + analyze + ai_analyze + render + trending 萃取 + deploy + commit
+    # 本機跑大約 15-20 min，GHA 加 Playwright 冷啟動約 25-30 min，預留 45 min margin
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repo
