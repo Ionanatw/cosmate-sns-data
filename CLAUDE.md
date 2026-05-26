@@ -48,6 +48,12 @@ python3 scripts/render_daily.py --with-ai              # render daily HTML + AI 
 python3 scripts/render_archive_index.py                # update archive list
 python3 scripts/ai_analyze.py                          # run Claude analysis on top posts
 bash scripts/deploy.sh                                 # deploy to Cloudflare Pages
+
+# Trending Signals 萃取：把週報的 A-type 爆款反推成「公式」寫入 Notion Trending Signals DB
+python3 scripts/extract_trending_signals.py --dry-run            # 預演（不寫 Notion）
+python3 scripts/extract_trending_signals.py --top-n 5            # 三主題各取 top 5（status=pending）
+python3 scripts/extract_trending_signals.py --expire-only        # 只跑 7 天過期掃除
+EXTRACT_TRENDING_SIGNALS=1 bash scripts/weekly.sh                # weekly pipeline 末段順手跑
 ```
 
 ## Environment & Credentials
@@ -65,6 +71,17 @@ ANTHROPIC_API_KEY=...
 - `IG_TOKEN_COSMATE` / `IG_USERID_COSMATE` / `IG_USERNAME_COSMATE`
 
 **GitHub Secrets** (used by GHA): same vars as above, plus `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `NOTION_TOKEN`, `NOTION_THREADS_DB_ID`, `NOTION_POSTS_DB_ID`.
+
+**For `weekly.yml` Trending Signals automation, additionally:**
+- `ANTHROPIC_API_KEY` — Claude API key for `ai_analyze.py` + `extract_trending_signals.py`
+- `THREADS_COOKIES_JSON_BASE64` — base64-encoded `~/.cosmate/threads_cookies.json` so CI can use Playwright (instead of Apify, which on FREE plan can't access the pay-per-event actor). Cookies expire eventually — re-dump from local Chrome and re-upload when scrape starts failing:
+
+```bash
+# Refresh cookies (run on local Mac with Chrome logged in to Threads)
+python3 scripts/lib/scrape_threads.py --dump-cookies ~/.cosmate/threads_cookies.json
+# Base64-encode for GHA secret value (paste output into THREADS_COOKIES_JSON_BASE64)
+base64 -i ~/.cosmate/threads_cookies.json | pbcopy   # macOS: now in clipboard
+```
 
 **Playwright cookies** (Threads scraper):
 ```bash
@@ -89,6 +106,7 @@ scripts/
 ├── render_archive_index.py      ← Render reports/archive/index.html listing
 ├── sync_to_notion.py            ← Threads metrics → Notion Posts DB
 ├── sync_ig_to_notion.py         ← IG metrics → Notion Posts DB
+├── extract_trending_signals.py  ← A-type 爆款 → Claude 萃取「情境/爆點/收尾」公式 → Notion Trending Signals DB（含 7 天 expiry sweeper）
 ├── fetch_insights.sh            ← Orchestrates Threads API + optional Notion sync
 ├── fetch_ig_insights.sh         ← Orchestrates IG API + optional Notion sync
 ├── weekly.sh                    ← Weekly pipeline orchestrator
@@ -113,6 +131,7 @@ reports/archive/                 ← Weekly report archive
 4. **Render** → `index.html` / `daily/index.html` (self-contained HTML with embedded JSON)
 5. **Deploy** → Cloudflare Pages at `https://threads-analytics-report.pages.dev`
 6. **Notion sync** → `sync_to_notion.py` upserts to Notion Posts DB
+7. **Trending Signals (opt-in)** → `extract_trending_signals.py` reads `data/per_topic/*.json`，把每主題 top A-type 貼文丟給 Claude 反推「情境/爆點/收尾」公式，寫入 Notion Trending Signals DB (status=pending)；同步把舊的非 evergreen 訊號標 expired。Telegram `/gen` 的 🔥 按鈕讀這顆 DB。
 
 ## Post Engagement Classification (Type A–X)
 
@@ -139,9 +158,10 @@ CI uses `wrangler-action@v3` for deploy (no local wrangler needed in CI). Python
 
 ## Known Paths / External Dependencies
 
-- Playwright scraper delegates to: `/Users/ionachen/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py`
+- Playwright scraper delegates to `scripts/lib/scrape_threads.py` (vendored copy of upstream `cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py`); the path resolver also accepts the upstream at `~/Documents/Claude/cosmate-ai-nexus/...` or `COSMATE_SCRAPE_THREADS_PATH` env override. If Threads DOM selector breaks, update upstream then re-vendor: `cp ~/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py scripts/lib/`
 - Cloudflare Pages project name: `threads-analytics-report`
 - Notion Posts DB ID (local reference): `2106fedce91a81389a54c223533d481b`
 - Notion Ideas DB ID (used by telegram-bot `/gen` flow): `2106fedce91a818c959ce4a991dd238b`
+- Notion Trending Signals DB ID (爆文公式庫): `82c8d3badb4c455888590ae5d7f4ac0b`（dedupe 用 `萃取公式` rich_text 末尾的 `— Source: /post/<id>` 行；7 天硬過期，`is_evergreen=true` 不過期）
 - Threads accounts tracked: `cosmate`, `olie`, `dadana`, `kiki`, `amy`
 - IG accounts tracked: `cosmate` only (expandable in `fetch_ig_insights.sh:ALL_ACCOUNTS`)

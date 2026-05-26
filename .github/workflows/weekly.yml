@@ -36,11 +36,39 @@ jobs:
       - name: Build .env for Apify
         run: echo "APIFY_TOKEN=${{ secrets.APIFY_TOKEN }}" > .env
 
+      # Playwright 路徑（首選，repost/share 抓得到）
+      # 若 GHA secret THREADS_COOKIES_JSON_BASE64 存在 → 還原 cookies + 裝 chromium；否則 weekly.sh fallback Apify
+      - name: Restore Threads cookies (optional)
+        id: restore_cookies
+        env:
+          THREADS_COOKIES_JSON_BASE64: ${{ secrets.THREADS_COOKIES_JSON_BASE64 }}
+        run: |
+          if [ -n "${THREADS_COOKIES_JSON_BASE64:-}" ]; then
+            mkdir -p ~/.cosmate
+            printf '%s' "$THREADS_COOKIES_JSON_BASE64" | base64 -d > ~/.cosmate/threads_cookies.json
+            chmod 600 ~/.cosmate/threads_cookies.json
+            echo "has_cookies=1" >> "$GITHUB_OUTPUT"
+            echo "✅ Threads cookies 已還原 ($(wc -c < ~/.cosmate/threads_cookies.json) bytes)"
+          else
+            echo "has_cookies=0" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  無 THREADS_COOKIES_JSON_BASE64 secret，將 fallback Apify（FREE plan 無法抓 → 跳過 trending）"
+          fi
+
+      - name: Install Playwright + chromium
+        if: steps.restore_cookies.outputs.has_cookies == '1'
+        run: |
+          pip install playwright certifi
+          python -m playwright install --with-deps chromium
+
       - name: Run pipeline
         env:
           THREADS_TOKEN_COSMATE: ${{ secrets.THREADS_TOKEN_COSMATE }}
           THREADS_USERID_COSMATE: ${{ secrets.THREADS_USERID_COSMATE }}
           THREADS_USERNAME_COSMATE: ${{ secrets.THREADS_USERNAME_COSMATE }}
+          # Trending Signals 萃取（需 Claude + Notion）
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          EXTRACT_TRENDING_SIGNALS: "1"
         run: bash scripts/weekly.sh ${{ github.event.inputs.mode || 'deploy' }}
 
       - name: Commit archive back to repo

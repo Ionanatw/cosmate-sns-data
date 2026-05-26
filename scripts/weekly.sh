@@ -60,6 +60,16 @@ echo "▶ Step 4/4: 產出四 tab HTML + archive"
 python3 scripts/render_index.py
 python3 scripts/render_archive_index.py
 
+# Step 5: 萃取爆文公式 → Notion Trending Signals DB（opt-in: EXTRACT_TRENDING_SIGNALS=1）
+if [ "${EXTRACT_TRENDING_SIGNALS:-0}" = "1" ]; then
+  echo ""
+  echo "▶ Step 5/5: 萃取爆文公式 → Notion Trending Signals DB"
+  python3 scripts/extract_trending_signals.py \
+    --topics anime love cosplay \
+    --top-n "${TRENDING_TOP_N:-5}" \
+    || echo "⚠️  Trending 萃取失敗，不影響報告"
+fi
+
 # Optional: 部署（僅本機；CI 環境交給 wrangler-action）
 if [ "$MODE" = "deploy" ]; then
   if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ]; then

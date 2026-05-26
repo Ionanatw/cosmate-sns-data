@@ -17,9 +17,25 @@ from datetime import datetime, timezone, timedelta
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = PROJECT_DIR / "data" / "raw"
-SCRAPE_THREADS = Path(
-    "/Users/ionachen/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py"
-)
+
+
+def _resolve_scrape_threads():
+    """優先 repo 內 vendor copy，再 fallback 家目錄 / ionachen（相容多份 checkout）。"""
+    env_path = os.environ.get("COSMATE_SCRAPE_THREADS_PATH")
+    candidates = [env_path] if env_path else []
+    candidates += [
+        PROJECT_DIR / "scripts/lib/scrape_threads.py",  # vendor（CI 用 / 自包含）
+        Path.home() / "Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py",
+        Path.home() / "Claude_OLD/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py",
+        Path("/Users/ionachen/Documents/Claude/cosmate-ai-nexus/skills/threads-analytics/scripts/scrape_threads.py"),
+    ]
+    for c in candidates:
+        if c and Path(c).expanduser().exists():
+            return Path(c).expanduser()
+    return None
+
+
+SCRAPE_THREADS = _resolve_scrape_threads()
 DEFAULT_COOKIES = Path("~/.cosmate/threads_cookies.json").expanduser()
 TZ_TPE = timezone(timedelta(hours=8))
 
