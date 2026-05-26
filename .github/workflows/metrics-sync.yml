@@ -9,7 +9,7 @@ on:
         description: '回溯天數'
         default: '5'
       accounts:
-        description: '帳號（all / cosmate / olie / dadana / kiki / amy）'
+        description: '帳號（all / cosmate / olie / dadana / kiki / amy / nadia）'
         default: 'all'
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
           python-version: '3.11'
         # sync_to_notion.py / sync_ig_to_notion.py 只用 Python stdlib，不需 pip install
 
-      - name: Sync Threads metrics (all 5 accounts)
+      - name: Sync Threads metrics (all 6 accounts)
         env:
           THREADS_TOKEN_COSMATE:    ${{ secrets.THREADS_TOKEN_COSMATE }}
           THREADS_USERID_COSMATE:   ${{ secrets.THREADS_USERID_COSMATE }}
@@ -41,6 +41,9 @@ jobs:
           THREADS_TOKEN_AMY:        ${{ secrets.THREADS_TOKEN_AMY }}
           THREADS_USERID_AMY:       ${{ secrets.THREADS_USERID_AMY }}
           THREADS_USERNAME_AMY:     ${{ secrets.THREADS_USERNAME_AMY }}
+          THREADS_TOKEN_NADIA:      ${{ secrets.THREADS_TOKEN_NADIA }}
+          THREADS_USERID_NADIA:     ${{ secrets.THREADS_USERID_NADIA }}
+          THREADS_USERNAME_NADIA:   ${{ secrets.THREADS_USERNAME_NADIA }}
           NOTION_TOKEN:             ${{ secrets.NOTION_TOKEN }}
           NOTION_THREADS_DB_ID:     ${{ secrets.NOTION_THREADS_DB_ID }}
           NOTION_POSTS_DB_ID:       ${{ secrets.NOTION_POSTS_DB_ID }}

@@ -99,6 +99,7 @@ ACCOUNT_TO_POSTER = {
     "dadana":  "宅人Dadana",
     "kiki":    "交友中的Kiki",
     "amy":     "社畜Amy",
+    "nadia":   "交軟專家nadia",
 }
 
 POSTS_DB_METRICS_MAP = [

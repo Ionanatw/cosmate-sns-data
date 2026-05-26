@@ -32,7 +32,7 @@ for arg in "$@"; do
 done
 
 # 可擴充帳號清單（後續加帳號只改這裡）
-ALL_ACCOUNTS=("cosmate" "olie" "dadana" "kiki" "amy")
+ALL_ACCOUNTS=("cosmate" "olie" "dadana" "kiki" "amy" "nadia")
 
 # ──────────────────────────────────────────
 # 單帳號抓取函式
@@ -71,8 +71,13 @@ fetch_single() {
       USER_ID="${THREADS_USERID_AMY}"
       USERNAME="${THREADS_USERNAME_AMY}"
       ;;
+    nadia)
+      TOKEN="${THREADS_TOKEN_NADIA}"
+      USER_ID="${THREADS_USERID_NADIA}"
+      USERNAME="${THREADS_USERNAME_NADIA}"
+      ;;
     *)
-      echo "❌ 未知帳號: $ACCT (可用: cosmate, olie, dadana, kiki, amy, all)"
+      echo "❌ 未知帳號: $ACCT (可用: cosmate, olie, dadana, kiki, amy, nadia, all)"
       return 1
       ;;
   esac
@@ -239,13 +244,13 @@ print('👁=觀看  ❤️=愛心  💬=回覆  🔁=轉發  📝=引用  ✈️
     fi
     ;;
 
-  cosmate|olie|dadana|kiki|amy)
+  cosmate|olie|dadana|kiki|amy|nadia)
     fetch_single "$ACCOUNT" "$DAYS" ""
     echo "👁=觀看  ❤️=愛心  💬=回覆  🔁=轉發  📝=引用  ✈️=分享"
     ;;
 
   *)
-    echo "❌ 未知帳號: $ACCOUNT (可用: cosmate, olie, dadana, kiki, all)"
+    echo "❌ 未知帳號: $ACCOUNT (可用: cosmate, olie, dadana, kiki, amy, nadia, all)"
     exit 1
     ;;
 esac
