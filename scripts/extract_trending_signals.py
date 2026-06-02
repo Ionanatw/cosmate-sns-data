@@ -152,8 +152,8 @@ def query_existing_by_source(token: str, post_key: str) -> bool:
     return bool(r.get("results"))
 
 
-def build_page_props(title: str, formula: str, category: str, personas: list, evergreen: bool, today_iso: str) -> dict:
-    return {
+def build_page_props(title: str, formula: str, category: str, personas: list, evergreen: bool, today_iso: str, permalink: str = "") -> dict:
+    props = {
         "原文標題": {"title": [{"text": {"content": title[:120]}}]},
         "萃取公式": {"rich_text": [{"text": {"content": formula[:1900]}}]},
         "主題分類": {"select": {"name": category}},
@@ -162,10 +162,32 @@ def build_page_props(title: str, formula: str, category: str, personas: list, ev
         "status": {"select": {"name": "pending"}},
         "is_evergreen": {"checkbox": bool(evergreen)},
     }
+    if permalink:
+        props["網址"] = {"url": permalink}
+    return props
 
 
-def create_signal_page(token: str, props: dict):
+def build_body_children(post_text: str) -> list:
+    """把原文塞進 page body，超過 1900 字切成多個 paragraph block。"""
+    text = (post_text or "").strip()
+    if not text:
+        return []
+    CHUNK = 1900
+    chunks = [text[i:i + CHUNK] for i in range(0, len(text), CHUNK)]
+    return [
+        {
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": {"rich_text": [{"type": "text", "text": {"content": c}}]},
+        }
+        for c in chunks
+    ]
+
+
+def create_signal_page(token: str, props: dict, children: list | None = None):
     payload = {"parent": {"database_id": TRENDING_DB_ID}, "properties": props}
+    if children:
+        payload["children"] = children
     return notion_request("POST", "/pages", token, payload)
 
 
@@ -369,16 +391,19 @@ def process_topic(topic: str, top_n: int, secrets: dict, dry_run: bool, today_is
             personas = DEFAULT_PERSONAS[category]
 
         evergreen = bool(extraction.get("evergreen", False))
-        props = build_page_props(title, formula, category, personas, evergreen, today_iso)
+        props = build_page_props(title, formula, category, personas, evergreen, today_iso, permalink=url)
+        children = build_body_children(post.get("text") or "")
 
         if dry_run:
             print(f"    [dry-run] would create: {title}")
             print(f"               公式: {formula_body[:60]}…")
             print(f"               personas={personas} evergreen={evergreen}")
+            print(f"               網址: {url}")
+            print(f"               body blocks: {len(children)}")
             inserted += 1
             continue
 
-        page = create_signal_page(secrets["NOTION_TOKEN"], props)
+        page = create_signal_page(secrets["NOTION_TOKEN"], props, children=children)
         if page:
             print(f"    ✅ created: {title}")
             inserted += 1
