@@ -21,15 +21,12 @@ from datetime import datetime, timezone, timedelta
 
 import urllib.request
 import urllib.error
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from accounts import ACCOUNT_TO_POSTER  # noqa: E402（帳號單一註冊表）
 
 TZ_GMT8 = timezone(timedelta(hours=8))
-
-ACCOUNT_TO_POSTER = {
-    "cosmate": "CosMate小編",
-    "olie":    "動漫宅Olie.Huang",
-    "dadana":  "宅人Dadana",
-    "kiki":    "交友中的Kiki",
-}
 
 # Posts DB 欄位 → IG metrics key
 POSTS_DB_METRICS_MAP = [

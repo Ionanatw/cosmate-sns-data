@@ -31,8 +31,17 @@ for arg in "$@"; do
   [ "$arg" = "--sync-notion" ] && SYNC_NOTION=1
 done
 
-# 可擴充帳號清單（後續加帳號只改這裡）
-ALL_ACCOUNTS=("cosmate" "olie" "dadana" "kiki" "amy" "nadia")
+# 帳號清單唯一來源：scripts/lib/accounts.py（新增帳號改那裡，不改這個檔）
+ALL_ACCOUNTS=($(python3 "$(dirname "$0")/lib/accounts.py" --list))
+
+# 檢查帳號是否在註冊表中
+is_known_account() {
+  local a
+  for a in "${ALL_ACCOUNTS[@]}"; do
+    [ "$a" = "$1" ] && return 0
+  done
+  return 1
+}
 
 # ──────────────────────────────────────────
 # 單帳號抓取函式
@@ -43,44 +52,23 @@ fetch_single() {
   local DAYS="$2"
   local SUMMARY_FILE="${3:-}"
 
-  # 帳號路由
-  local TOKEN USER_ID USERNAME
-  case "$ACCT" in
-    cosmate)
-      TOKEN="${THREADS_TOKEN_COSMATE}"
-      USER_ID="${THREADS_USERID_COSMATE}"
-      USERNAME="${THREADS_USERNAME_COSMATE}"
-      ;;
-    olie)
-      TOKEN="${THREADS_TOKEN_OLIE}"
-      USER_ID="${THREADS_USERID_OLIE}"
-      USERNAME="${THREADS_USERNAME_OLIE}"
-      ;;
-    dadana)
-      TOKEN="${THREADS_TOKEN_DADANA}"
-      USER_ID="${THREADS_USERID_DADANA}"
-      USERNAME="${THREADS_USERNAME_DADANA}"
-      ;;
-    kiki)
-      TOKEN="${THREADS_TOKEN_KIKI}"
-      USER_ID="${THREADS_USERID_KIKI}"
-      USERNAME="${THREADS_USERNAME_KIKI}"
-      ;;
-    amy)
-      TOKEN="${THREADS_TOKEN_AMY}"
-      USER_ID="${THREADS_USERID_AMY}"
-      USERNAME="${THREADS_USERNAME_AMY}"
-      ;;
-    nadia)
-      TOKEN="${THREADS_TOKEN_NADIA}"
-      USER_ID="${THREADS_USERID_NADIA}"
-      USERNAME="${THREADS_USERNAME_NADIA}"
-      ;;
-    *)
-      echo "❌ 未知帳號: $ACCT (可用: cosmate, olie, dadana, kiki, amy, nadia, all)"
-      return 1
-      ;;
-  esac
+  # 帳號路由：環境變數名由帳號 key 推導（THREADS_{TOKEN,USERID,USERNAME}_<KEY>）
+  if ! is_known_account "$ACCT"; then
+    echo "❌ 未知帳號: $ACCT (可用: ${ALL_ACCOUNTS[*]}, all)"
+    return 1
+  fi
+  local KEY_UPPER TOKEN USER_ID USERNAME
+  KEY_UPPER=$(printf '%s' "$ACCT" | tr '[:lower:]' '[:upper:]')
+  local _TOKEN_VAR="THREADS_TOKEN_${KEY_UPPER}"
+  local _USERID_VAR="THREADS_USERID_${KEY_UPPER}"
+  local _USERNAME_VAR="THREADS_USERNAME_${KEY_UPPER}"
+  TOKEN="${!_TOKEN_VAR:-}"
+  USER_ID="${!_USERID_VAR:-}"
+  USERNAME="${!_USERNAME_VAR:-}"
+  if [ -z "$TOKEN" ] || [ -z "$USER_ID" ]; then
+    echo "⚠️ @${ACCT} 缺少環境變數 ${_TOKEN_VAR} / ${_USERID_VAR}，跳過"
+    return 1
+  fi
 
   local SINCE
   SINCE=$(python3 -c "import time; print(int(time.time()) - ${DAYS} * 86400)")
@@ -223,11 +211,37 @@ case "$ACCOUNT" in
     echo ""
 
     _OK=0
+    OK_LIST=""
+    FAIL_LIST=""
     for ACC in "${ALL_ACCOUNTS[@]}"; do
-      fetch_single "$ACC" "$DAYS" "$SUMMARY_FILE" && _OK=$((_OK+1)) || true
+      if fetch_single "$ACC" "$DAYS" "$SUMMARY_FILE"; then
+        _OK=$((_OK+1))
+        OK_LIST="$OK_LIST $ACC"
+      else
+        FAIL_LIST="$FAIL_LIST $ACC"
+      fi
     done
+
+    # 結果斷言：成功/失敗帳號一覽，寫進 GHA step summary（消滅綠燈假象）
+    echo ""
+    echo "📋 帳號同步結果：成功 ${_OK}/${#ALL_ACCOUNTS[@]} —${OK_LIST:-（無）}"
+    if [ -n "$FAIL_LIST" ]; then
+      echo "⚠️ 失敗帳號：$FAIL_LIST（原因見上方各帳號訊息）"
+      if [ -n "${GITHUB_ACTIONS:-}" ]; then
+        echo "::warning::Threads metrics 部分帳號同步失敗:$FAIL_LIST"
+      fi
+    fi
+    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+      {
+        echo "### Threads Metrics Sync（近 ${DAYS} 天）"
+        echo "- ✅ 成功 ${_OK}/${#ALL_ACCOUNTS[@]}:${OK_LIST:-（無）}"
+        if [ -n "$FAIL_LIST" ]; then
+          echo "- ❌ 失敗:$FAIL_LIST"
+        fi
+      } >> "$GITHUB_STEP_SUMMARY"
+    fi
     if [ "$_OK" -eq 0 ]; then
-      echo "❌ 所有帳號 token 均失效，Notion 未更新"
+      echo "❌ 所有帳號同步均失敗，Notion 未更新"
       exit 1
     fi
 
@@ -244,13 +258,13 @@ print('👁=觀看  ❤️=愛心  💬=回覆  🔁=轉發  📝=引用  ✈️
     fi
     ;;
 
-  cosmate|olie|dadana|kiki|amy|nadia)
-    fetch_single "$ACCOUNT" "$DAYS" ""
-    echo "👁=觀看  ❤️=愛心  💬=回覆  🔁=轉發  📝=引用  ✈️=分享"
-    ;;
-
   *)
-    echo "❌ 未知帳號: $ACCOUNT (可用: cosmate, olie, dadana, kiki, amy, nadia, all)"
-    exit 1
+    if is_known_account "$ACCOUNT"; then
+      fetch_single "$ACCOUNT" "$DAYS" ""
+      echo "👁=觀看  ❤️=愛心  💬=回覆  🔁=轉發  📝=引用  ✈️=分享"
+    else
+      echo "❌ 未知帳號: $ACCOUNT (可用: ${ALL_ACCOUNTS[*]}, all)"
+      exit 1
+    fi
     ;;
 esac

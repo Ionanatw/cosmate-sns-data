@@ -21,9 +21,13 @@ import json
 import os
 import sys
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 import urllib.request
 import urllib.error
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from accounts import ACCOUNT_TO_POSTER  # noqa: E402（帳號單一註冊表）
 
 # GMT+8
 TZ_GMT8 = timezone(timedelta(hours=8))
@@ -92,15 +96,6 @@ def build_page_properties(post_id, account, post_date_iso, text_preview, permali
 
 
 # ── Posts DB helpers ─────────────────────────────────────────
-
-ACCOUNT_TO_POSTER = {
-    "cosmate": "CosMate小編",
-    "olie":    "動漫宅Olie.Huang",
-    "dadana":  "宅人Dadana",
-    "kiki":    "交友中的Kiki",
-    "amy":     "社畜Amy",
-    "nadia":   "交軟專家nadia",
-}
 
 POSTS_DB_METRICS_MAP = [
     ("瀏覽數", "views"),

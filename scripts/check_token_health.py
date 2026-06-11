@@ -3,10 +3,12 @@
 
 import os
 import sys
+from pathlib import Path
+
 import requests
 
-THREADS_ACCOUNTS = ["cosmate", "olie", "dadana", "kiki", "amy"]
-IG_ACCOUNTS = ["cosmate"]
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from accounts import THREADS_ACCOUNTS, IG_ACCOUNTS  # noqa: E402（帳號單一註冊表）
 
 failed = []
 ok = []
