@@ -92,7 +92,7 @@ PIPELINE_WRITTEN_VALUES = {
     "Platform": {"Threads", "Instagram"},
     "Format":   {"Post", "Reel"},
     "Status":   {"Posted"},
-    "來源":     {"✍️ 人工"},
+    "來源":     {"✍️人工"},  # canonical 無空格（260612 統一決策）
     "貼文人":   set(ACCOUNT_TO_POSTER.values()),
 }
 

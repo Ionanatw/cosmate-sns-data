@@ -151,7 +151,7 @@ def build_posts_db_new_entry_props(post_id, account, post_date_iso, text_preview
         "Platform": {"multi_select": [{"name": "Threads"}]},
         "Format": {"select": {"name": "Post"}},
         "Status": {"status": {"name": "Posted"}},
-        "來源": {"select": {"name": "✍️ 人工"}},
+        "來源": {"select": {"name": "✍️人工"}},  # canonical 無空格（260612 統一決策）
     }
     poster = ACCOUNT_TO_POSTER.get(account)
     if poster:
