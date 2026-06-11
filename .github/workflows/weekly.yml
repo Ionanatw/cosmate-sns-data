@@ -71,6 +71,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           EXTRACT_TRENDING_SIGNALS: "1"
+          # cookies 失效降級 Apify 時發 Telegram（scripts/notify_telegram.py）
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: bash scripts/weekly.sh ${{ github.event.inputs.mode || 'deploy' }}
 
       - name: Commit archive back to repo
