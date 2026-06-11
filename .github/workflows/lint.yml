@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # R1-R4：date -v / declare -A / /Users/ 硬路徑（歷史 6 個 fix commit 的根因）
+      # R1-R4：date -v / declare -A / 本機家目錄硬路徑（歷史 6 個 fix commit 的根因）
       - name: 跨平台相容性 lint
         run: python3 scripts/lint_repo.py
 
