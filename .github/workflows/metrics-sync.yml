@@ -24,6 +24,15 @@ jobs:
           python-version: '3.11'
         # sync_to_notion.py / sync_ig_to_notion.py 只用 Python stdlib，不需 pip install
 
+      # 防呆：欄位名（含尾端空白）與 multi_select 選項污染，先驗再同步
+      # 失敗 → workflow 變紅 → failure-notify 發 Telegram
+      - name: Validate Notion schema
+        env:
+          NOTION_TOKEN:         ${{ secrets.NOTION_TOKEN }}
+          NOTION_THREADS_DB_ID: ${{ secrets.NOTION_THREADS_DB_ID }}
+          NOTION_POSTS_DB_ID:   ${{ secrets.NOTION_POSTS_DB_ID }}
+        run: python3 scripts/validate_notion_schema.py
+
       - name: Sync Threads metrics (all 6 accounts)
         env:
           THREADS_TOKEN_COSMATE:    ${{ secrets.THREADS_TOKEN_COSMATE }}
