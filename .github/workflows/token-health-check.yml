@@ -26,5 +26,6 @@ jobs:
           THREADS_TOKEN_DADANA: ${{ secrets.THREADS_TOKEN_DADANA }}
           THREADS_TOKEN_KIKI: ${{ secrets.THREADS_TOKEN_KIKI }}
           THREADS_TOKEN_AMY: ${{ secrets.THREADS_TOKEN_AMY }}
+          THREADS_TOKEN_NADIA: ${{ secrets.THREADS_TOKEN_NADIA }}
           IG_TOKEN_COSMATE: ${{ secrets.IG_TOKEN_COSMATE }}
         run: python3 scripts/check_token_health.py
