@@ -36,6 +36,8 @@ if [ "$MODE" != "skip-scrape" ]; then
     echo "✅ Playwright 爬取成功（含 repost/share）"
   else
     echo "⚠️  Playwright 失敗或無 cookies，降級使用 Apify（無 repost/share）"
+    # 降級不再靜默：通知鴿王本週數據品質下降 + 該換 cookies 了
+    python3 scripts/notify_telegram.py "⚠️ Threads 週報：Playwright cookies 失效或爬取失敗，本週降級用 Apify（缺 repost/share 數據）。請在本機 re-dump cookies 並更新 GHA secret THREADS_COOKIES_JSON_BASE64（指令見 CLAUDE.md）。" || true
     python3 scripts/scrape_multi_topic.py anime love cosplay --timeout 450
   fi
 

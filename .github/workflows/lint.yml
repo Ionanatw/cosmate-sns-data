@@ -1,0 +1,55 @@
+name: Lint & Smoke Test
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # R1-R4：date -v / declare -A / 本機家目錄硬路徑（歷史 6 個 fix commit 的根因）
+      - name: 跨平台相容性 lint
+        run: python3 scripts/lint_repo.py
+
+      # 帳號註冊表 vs workflow secrets 清單一致性（漏列任何帳號的 env var 就 fail）
+      - name: 帳號清單一致性檢查
+        run: |
+          python3 scripts/lib/accounts.py --check-workflow .github/workflows/metrics-sync.yml
+          python3 scripts/lib/accounts.py --check-workflow .github/workflows/token-health-check.yml --require THREADS_TOKEN,IG_TOKEN
+
+      - name: shellcheck（severity=error）
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq shellcheck
+          # 排除已棄用的 scrape_multi_topic.sh（見 lint_repo.py LEGACY_SKIP）
+          find scripts -name '*.sh' ! -name 'scrape_multi_topic.sh' -print0 \
+            | xargs -0 shellcheck --severity=error
+
+  # 用合成 fixtures 跑 analyze + render，render 改壞在合併前就會紅
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+        # analyze_by_topic.py / render_index.py 只用 stdlib，不需 pip install
+
+      - name: 合成 fixtures → analyze → render
+        run: |
+          python3 tests/make_fixtures.py
+          python3 scripts/analyze_by_topic.py --all --days 30
+          python3 scripts/render_index.py
+
+      - name: 驗收 index.html
+        run: |
+          test -s index.html
+          grep -q '動漫' index.html
+          grep -q 'Cosplay' index.html
+          echo "✅ smoke 通過（index.html $(wc -c < index.html) bytes）"

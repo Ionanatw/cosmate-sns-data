@@ -21,9 +21,13 @@ import json
 import os
 import sys
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 import urllib.request
 import urllib.error
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from accounts import ACCOUNT_TO_POSTER  # noqa: E402（帳號單一註冊表）
 
 # GMT+8
 TZ_GMT8 = timezone(timedelta(hours=8))
@@ -93,15 +97,6 @@ def build_page_properties(post_id, account, post_date_iso, text_preview, permali
 
 # ── Posts DB helpers ─────────────────────────────────────────
 
-ACCOUNT_TO_POSTER = {
-    "cosmate": "CosMate小編",
-    "olie":    "動漫宅Olie.Huang",
-    "dadana":  "宅人Dadana",
-    "kiki":    "交友中的Kiki",
-    "amy":     "社畜Amy",
-    "nadia":   "交軟專家nadia",
-}
-
 POSTS_DB_METRICS_MAP = [
     ("瀏覽數", "views"),
     ("讚",     "likes"),
@@ -156,7 +151,7 @@ def build_posts_db_new_entry_props(post_id, account, post_date_iso, text_preview
         "Platform": {"multi_select": [{"name": "Threads"}]},
         "Format": {"select": {"name": "Post"}},
         "Status": {"status": {"name": "Posted"}},
-        "來源": {"select": {"name": "✍️ 人工"}},
+        "來源": {"select": {"name": "✍️人工"}},  # canonical 無空格（260612 統一決策）
     }
     poster = ACCOUNT_TO_POSTER.get(account)
     if poster:
@@ -190,6 +185,7 @@ def main():
     posts = json.load(open(posts_path))
     inserted = updated = skipped = 0
     posts_inserted = posts_updated = 0
+    skip_reasons = []
 
     for post in posts:
         mid = post["id"]
@@ -234,6 +230,7 @@ def main():
                 print(f"  🔄 updated  {mid[:12]}… ({text[:30]})")
             else:
                 skipped += 1
+                skip_reasons.append(f"{mid}: Threads DB PATCH 失敗（Notion API error，見 stderr）")
         else:
             payload = {
                 "parent": {"database_id": args.db_id},
@@ -245,6 +242,7 @@ def main():
                 print(f"  ✅ inserted {mid[:12]}… ({text[:30]})")
             else:
                 skipped += 1
+                skip_reasons.append(f"{mid}: Threads DB POST 失敗（Notion API error，見 stderr）")
 
         # ── Posts DB sync ──
         if args.posts_db_id and mid:
@@ -274,10 +272,20 @@ def main():
             except (ValueError, RuntimeError) as e:
                 print(f"  ⚠️  Posts DB upsert skipped for post_id={mid}: {e}", file=sys.stderr)
                 skipped += 1
+                skip_reasons.append(f"{mid}: Posts DB upsert 失敗 — {e}")
 
     print(f"\n  📊 @{args.account}: inserted={inserted}, updated={updated}, skipped={skipped}")
+    if skip_reasons:
+        print(f"  ⚠️  skip 原因明細（{len(skip_reasons)} 筆）：", file=sys.stderr)
+        for reason in skip_reasons:
+            print(f"     - {reason}", file=sys.stderr)
     if args.posts_db_id:
         print(f"  📆 Posts DB: created={posts_inserted}, updated={posts_updated}")
+
+    # 結果斷言：有貼文但一筆都沒寫成功 → 同步失敗，不能綠燈假象
+    if posts and (inserted + updated + posts_inserted + posts_updated) == 0:
+        print(f"  ❌ @{args.account}: {len(posts)} 篇貼文全部同步失敗，視為錯誤", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

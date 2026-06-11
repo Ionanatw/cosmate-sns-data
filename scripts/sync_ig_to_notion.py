@@ -21,15 +21,12 @@ from datetime import datetime, timezone, timedelta
 
 import urllib.request
 import urllib.error
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from accounts import ACCOUNT_TO_POSTER  # noqa: E402（帳號單一註冊表）
 
 TZ_GMT8 = timezone(timedelta(hours=8))
-
-ACCOUNT_TO_POSTER = {
-    "cosmate": "CosMate小編",
-    "olie":    "動漫宅Olie.Huang",
-    "dadana":  "宅人Dadana",
-    "kiki":    "交友中的Kiki",
-}
 
 # Posts DB 欄位 → IG metrics key
 POSTS_DB_METRICS_MAP = [
@@ -111,7 +108,7 @@ def build_new_entry_props(account, post_date_iso, text_preview, permalink, media
         "Platform": {"multi_select": [{"name": "Instagram"}]},
         "Format": {"select": {"name": "Reel" if media_type in ("VIDEO", "REEL") else "Post"}},
         "Status": {"status": {"name": "Posted"}},
-        "來源": {"select": {"name": "✍️ 人工"}},
+        "來源": {"select": {"name": "✍️人工"}},  # canonical 無空格（260612 統一決策）
     }
 
     poster = ACCOUNT_TO_POSTER.get(account)
