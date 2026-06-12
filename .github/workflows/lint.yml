@@ -20,6 +20,7 @@ jobs:
         run: |
           python3 scripts/lib/accounts.py --check-workflow .github/workflows/metrics-sync.yml
           python3 scripts/lib/accounts.py --check-workflow .github/workflows/token-health-check.yml --require THREADS_TOKEN,IG_TOKEN
+          python3 scripts/lib/accounts.py --check-workflow .github/workflows/token-refresh.yml --require THREADS_TOKEN
 
       - name: shellcheck（severity=error）
         run: |
