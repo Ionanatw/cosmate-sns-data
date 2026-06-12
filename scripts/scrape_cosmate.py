@@ -129,7 +129,7 @@ def main():
     env = load_env()
     user_id = env.get("THREADS_USERID_COSMATE")
     token = env.get("THREADS_TOKEN_COSMATE")
-    username = env.get("THREADS_USERNAME_COSMATE", "cosmatedaily")
+    username = env.get("THREADS_USERNAME_COSMATE", "cosmate.app")
     if not user_id or not token:
         sys.exit("❌ 缺 THREADS_USERID_COSMATE / THREADS_TOKEN_COSMATE")
 
