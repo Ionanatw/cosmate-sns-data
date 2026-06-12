@@ -1,0 +1,52 @@
+name: Threads Token 自動 Refresh
+
+on:
+  schedule:
+    - cron: '0 3 * * 3'  # Wed 03:00 UTC = 11:00 GMT+8（跟 health-check / metrics-sync 錯開）
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 只試跑、不真寫 secret（驗證新 PAT / accounts.py 變動）
+        type: boolean
+        default: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Refresh Threads tokens（並寫入兩個 repo 的 secret）
+        id: refresh
+        continue-on-error: true
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+          GH_PAT_SECRETS_WRITE: ${{ secrets.GH_PAT_SECRETS_WRITE }}
+          THREADS_TOKEN_COSMATE: ${{ secrets.THREADS_TOKEN_COSMATE }}
+          THREADS_TOKEN_OLIE:    ${{ secrets.THREADS_TOKEN_OLIE }}
+          THREADS_TOKEN_DADANA:  ${{ secrets.THREADS_TOKEN_DADANA }}
+          THREADS_TOKEN_KIKI:    ${{ secrets.THREADS_TOKEN_KIKI }}
+          THREADS_TOKEN_AMY:     ${{ secrets.THREADS_TOKEN_AMY }}
+          THREADS_TOKEN_NADIA:   ${{ secrets.THREADS_TOKEN_NADIA }}
+        run: python3 scripts/refresh_threads_tokens.py
+
+      - name: Telegram 通知（不管成功失敗都送）
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -f refresh_summary.txt ]; then
+            python3 scripts/notify_telegram.py "$(cat refresh_summary.txt)"
+          else
+            python3 scripts/notify_telegram.py "⚠️ Threads token refresh：script 沒輸出 summary，可能 setup 階段就掛了"
+          fi
+
+      - name: Fail job if any token refresh failed
+        if: steps.refresh.outcome == 'failure'
+        run: exit 1
