@@ -13,7 +13,7 @@ from typing import Iterable
 from notion_lib import notion_request
 
 
-OLIE_PERSONA_PAGE_ID = "33d6fedce91a815b9a3de3d4998ded88"
+OLIE_PERSONA_PAGE_ID = "3256fedce91a80b9b2dfeb790d20d8b3"  # P-SNS-03 Olie Huang
 
 # Fallback：當 Notion page 載入失敗（404 / 權限不足 / 空頁）時用
 # 來源：cosmate-ai-nexus/agents/dede/telegram-bot/src/contentgen.ts L63-67 的 inline spec

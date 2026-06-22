@@ -37,7 +37,7 @@ from notion_lib import (  # noqa: E402
     fetch_recent_origin_urls,
     load_secrets,
 )
-from persona_loader import fetch_olie_persona  # noqa: E402
+from persona_loader import OLIE_PERSONA_PAGE_ID, fetch_olie_persona  # noqa: E402
 from topics_auto import TIME_WINDOWS  # noqa: E402
 
 RAW_AUTO_DIR = PROJECT_DIR / "data" / "raw" / "auto"
@@ -278,7 +278,7 @@ def main():
         print(prompt)
         if source == "fallback":
             print("─" * 60)
-            print("⚠️  用了 inline fallback — 把 Notion page 33d6fedc... share 給 integration 才能讀完整版")
+            print(f"⚠️  用了 inline fallback — 把 Notion page {OLIE_PERSONA_PAGE_ID[:8]}... share 給 integration 才能讀完整版")
         return
 
     # 1. find raw
