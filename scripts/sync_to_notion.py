@@ -107,6 +107,11 @@ POSTS_DB_METRICS_MAP = [
 ]
 
 
+def has_any_metric(metrics):
+    """是否有任何數值型指標（reposts/bare media 貼文常常 insight 全空）。"""
+    return any(isinstance(metrics.get(key), (int, float)) for _, key in POSTS_DB_METRICS_MAP)
+
+
 def query_posts_db_by_post_id(posts_db_id, token, post_id):
     """以 Threads Post ID 為 unique key 查詢 Posts DB。"""
     if not post_id:
@@ -260,6 +265,10 @@ def main():
                         if r:
                             posts_updated += 1
                             print(f"  📝 Posts DB updated  ({text[:30]})")
+                elif not text.strip() and not has_any_metric(metrics):
+                    # 無文案 + 無 insight = repost/純圖貼文，建出來只會是空白列，不入 Posts DB
+                    # （已存在的 row 仍會走上面 update 分支補指標，不受影響）
+                    print(f"  ⏭️  Posts DB skip 空白貼文（無文案無指標）{mid[:12]}…")
                 else:
                     new_props = build_posts_db_new_entry_props(mid, args.account, post_date_iso, text, permalink, metrics)
                     r = notion_request("POST", "/pages", args.token, {
