@@ -38,6 +38,7 @@ from notion_lib import (  # noqa: E402
     load_secrets,
 )
 from persona_loader import OLIE_PERSONA_PAGE_ID, fetch_olie_persona  # noqa: E402
+from text_lang import is_zh_tw  # noqa: E402
 from topics_auto import TIME_WINDOWS  # noqa: E402
 
 RAW_AUTO_DIR = PROJECT_DIR / "data" / "raw" / "auto"
@@ -291,9 +292,11 @@ def main():
         topic, window = parse_topic_window(f)
         print(f"   {topic}/{window} ← {f.name}")
 
-    # 2. load posts
+    # 2. load posts + zh-TW 過濾（OLIE 受眾是繁中讀者，英文/簡中原文改寫變再創作沒意義）
     all_posts = load_posts(files)
-    print(f"   total {len(all_posts)} 篇")
+    before = len(all_posts)
+    all_posts = [p for p in all_posts if is_zh_tw(p["text"])]
+    print(f"   total {before} 篇 → zh-TW 過濾後 {len(all_posts)} 篇")
 
     # 3. dedupe — 查 Auto Post DB 30 天內已用的原文 URL
     db_id = secrets.get("NOTION_AUTO_POST_DB_ID")
