@@ -49,6 +49,10 @@ python3 scripts/render_archive_index.py                # update archive list
 python3 scripts/ai_analyze.py                          # run Claude analysis on top posts
 bash scripts/deploy.sh                                 # deploy to Cloudflare Pages
 
+# Auto Post 流程（issue #8 OLIE 半自動發文 Phase 1）— 多主題爬蟲，輸出按時間窗切桶
+python3 scripts/scrape_auto_topics.py                            # 5 topic 全跑（anime/love/beyblade/zodiac/mbti）
+python3 scripts/scrape_auto_topics.py anime mbti --scroll 16     # 指定主題 + 加深爬量挖歷史
+
 # Trending Signals 萃取：把週報的 A-type 爆款反推成「公式」寫入 Notion Trending Signals DB
 python3 scripts/extract_trending_signals.py --dry-run            # 預演（不寫 Notion）
 python3 scripts/extract_trending_signals.py --top-n 5            # 三主題各取 top 5（status=pending）
