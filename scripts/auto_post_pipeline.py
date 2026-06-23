@@ -189,7 +189,7 @@ def pick_candidates(posts: list[dict], top_n: int, exclude_urls: set[str]) -> li
 
 # ── stage 3: rewrite via Claude ────────────────────────────────
 
-REWRITE_USER_TEMPLATE = """你要把一篇 Threads 爆紅原文，用 OLIE 人設口吻改寫。
+REWRITE_INSTRUCTION = """你要把一篇 Threads 爆紅原文，用 OLIE 人設口吻改寫。
 
 從以下三種改寫力道**自動選一種**（看原文長相判斷）：
 
@@ -319,8 +319,10 @@ REWRITE_USER_TEMPLATE = """你要把一篇 Threads 爆紅原文，用 OLIE 人�
   - 不要標註你用了哪種方式
   - 如果原文已經完美不需要改寫，那就用方式 A 換 1-2 個字就好（不要「保留原樣」這個選項）
 
-現在改寫這篇：
+現在改寫這篇："""
 
+# 每次 call 都不同的 query 部分（不可 cache）
+REWRITE_QUERY_TEMPLATE = """
 主題：{topic} / 時間窗：{window}
 原文：
 ---
@@ -334,13 +336,29 @@ def _ctx():
     return ssl.create_default_context(cafile=_CA_FILE) if _CA_FILE else ssl.create_default_context()
 
 
-def call_claude(system_prompt: str, user_msg: str, api_key: str,
-                model: str = ANTHROPIC_MODEL, max_tokens: int = 1024) -> str:
+def call_claude(system_prompt: str, instruction: str, query: str, api_key: str,
+                model: str = ANTHROPIC_MODEL, max_tokens: int = 1024) -> tuple[str, dict]:
+    """呼叫 Anthropic Messages API。
+
+    system_prompt + instruction 兩段都標 cache_control=ephemeral —
+    Anthropic 會 cache 兩段，後續同前綴 call 直接讀 cache（5 分鐘 TTL，
+    每次 hit 自動延長）。query 每篇原文不同，不 cache。
+
+    回傳 (rewritten_text, usage_dict) — usage 含 cache_read/write tokens 給 log 用。
+    """
     payload = {
         "model": model,
         "max_tokens": max_tokens,
-        "system": system_prompt,
-        "messages": [{"role": "user", "content": user_msg}],
+        "system": [
+            {"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}},
+        ],
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": instruction, "cache_control": {"type": "ephemeral"}},
+                {"type": "text", "text": query},
+            ],
+        }],
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(ANTHROPIC_URL, data=data, method="POST")
@@ -350,25 +368,27 @@ def call_claude(system_prompt: str, user_msg: str, api_key: str,
     try:
         with urllib.request.urlopen(req, timeout=120, context=_ctx()) as resp:
             body = json.loads(resp.read().decode("utf-8"))
-        return (body.get("content", [{}])[0].get("text", "") or "").strip()
+        text = (body.get("content", [{}])[0].get("text", "") or "").strip()
+        return text, body.get("usage", {})
     except urllib.error.HTTPError as e:
         msg = e.read().decode("utf-8", errors="replace")
         print(f"  ❌ Anthropic HTTP {e.code}: {msg[:300]}", file=sys.stderr)
-        return ""
+        return "", {}
     except urllib.error.URLError as e:
         print(f"  ❌ Anthropic URL error: {e}", file=sys.stderr)
-        return ""
+        return "", {}
 
 
 def rewrite_one(candidate: dict, system_prompt: str, api_key: str) -> dict:
-    user_msg = REWRITE_USER_TEMPLATE.format(
+    query = REWRITE_QUERY_TEMPLATE.format(
         topic=candidate["topic"],
         window=candidate["window"],
         original=candidate["text"],
     )
-    rewritten = call_claude(system_prompt, user_msg, api_key)
+    rewritten, usage = call_claude(system_prompt, REWRITE_INSTRUCTION, query, api_key)
     if not rewritten:
-        return {"ok": False, "reason": "Claude API 回空字串", "rewritten": "", "candidate": candidate}
+        return {"ok": False, "reason": "Claude API 回空字串", "rewritten": "",
+                "candidate": candidate, "usage": usage}
     if has_kana(rewritten):
         hit = find_kana_chars(rewritten)[:5]
         return {
@@ -376,8 +396,9 @@ def rewrite_one(candidate: dict, system_prompt: str, api_key: str) -> dict:
             "reason": f"含日文假名: {''.join(hit)}",
             "rewritten": rewritten,
             "candidate": candidate,
+            "usage": usage,
         }
-    return {"ok": True, "rewritten": rewritten, "candidate": candidate}
+    return {"ok": True, "rewritten": rewritten, "candidate": candidate, "usage": usage}
 
 
 # ── stage 4: sync to Notion ────────────────────────────────────
@@ -509,12 +530,30 @@ def main():
     # 6. rewrite
     print("✍️  改寫中...")
     rewrites = []
+    total_usage = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
     for c in picked:
         result = rewrite_one(c, system_prompt, api_key)
         rewrites.append(result)
         mark = "✅" if result["ok"] else "❌"
         info = f"{len(result.get('rewritten', ''))} 字" if result["ok"] else result["reason"]
-        print(f"   {mark} {c['topic']}/{c['window']} → {info}")
+        u = result.get("usage", {})
+        total_usage["input"] += u.get("input_tokens", 0)
+        total_usage["output"] += u.get("output_tokens", 0)
+        total_usage["cache_read"] += u.get("cache_read_input_tokens", 0)
+        total_usage["cache_write"] += u.get("cache_creation_input_tokens", 0)
+        print(f"   {mark} {c['topic']}/{c['window']} → {info}"
+              f"  [in={u.get('input_tokens',0)} out={u.get('output_tokens',0)}"
+              f" cache_r={u.get('cache_read_input_tokens',0)} cache_w={u.get('cache_creation_input_tokens',0)}]")
+    # 估成本：input $3/M, output $15/M, cache_read $0.30/M, cache_write $3.75/M
+    cost = (
+        total_usage["input"] * 3 / 1_000_000
+        + total_usage["output"] * 15 / 1_000_000
+        + total_usage["cache_read"] * 0.30 / 1_000_000
+        + total_usage["cache_write"] * 3.75 / 1_000_000
+    )
+    print(f"   💰 Anthropic usage: in={total_usage['input']} out={total_usage['output']}"
+          f" cache_r={total_usage['cache_read']} cache_w={total_usage['cache_write']}"
+          f" ≈ ${cost:.4f}")
 
     # 7. sync
     print("💾 同步 Auto Post DB" + ("（dry-run）" if args.dry_run else "") + "...")
