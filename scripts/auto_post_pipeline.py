@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import ssl
 import sys
@@ -105,12 +106,11 @@ def load_posts(files: list[Path]) -> list[dict]:
             text = _TRANSLATE_TAIL_RE.sub("", text).strip()
             if not text:
                 continue
-            engagement = (
-                int(thread.get("like_count", 0) or 0)
-                + int(thread.get("reply_count", 0) or 0) * 3
-                + int(thread.get("repostCount", 0) or 0) * 2
-                + int(thread.get("reshareCount", 0) or 0) * 2
-            )
+            likes = int(thread.get("like_count", 0) or 0)
+            comments = int(thread.get("reply_count", 0) or 0)
+            reposts = int(thread.get("repostCount", 0) or 0)
+            shares = int(thread.get("reshareCount", 0) or 0)
+            engagement = likes + comments * 3 + reposts * 2 + shares * 2
             out.append({
                 "topic": topic,
                 "window": window,
@@ -118,13 +118,48 @@ def load_posts(files: list[Path]) -> list[dict]:
                 "post_id": thread.get("code", "") or "",
                 "author": thread.get("username", "") or "",
                 "text": text,
+                "likes": likes,
+                "comments": comments,  # 跟 analyze.py 命名一致（reply_count → comments）
+                "reposts": reposts,
+                "shares": shares,
                 "engagement": engagement,
             })
     return out
 
 
+# Type A 分類（跟 analyze.py:classify_posts 的 Type A 定義一致）
+
+def _percentile(values, p):
+    """Linear interpolation percentile（複製自 analyze.py:percentile 保持一致）。"""
+    if not values:
+        return 0
+    s = sorted(values)
+    k = (len(s) - 1) * p / 100
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return s[int(k)]
+    return s[f] * (c - k) + s[c] * (k - f)
+
+
+def filter_type_a(posts: list[dict]) -> list[dict]:
+    """挑出 Type A 全能爆款：likes ≥ P90 AND comments ≥ P90（per batch）。
+
+    跨 topic 一起算 percentile（OLIE 流程候選池是混合的）— 跟 analyze.py 的
+    per-topic percentile 取捨不同，但本流程要的就是跨 topic 比較。
+    """
+    if not posts:
+        return []
+    likes_p90 = _percentile([p["likes"] for p in posts], 90)
+    comments_p90 = _percentile([p["comments"] for p in posts], 90)
+    return [p for p in posts if p["likes"] >= likes_p90 and p["comments"] >= comments_p90]
+
+
 def pick_candidates(posts: list[dict], top_n: int, exclude_urls: set[str]) -> list[dict]:
-    """按 engagement 排 → 跨 topic 平衡挑 N 篇（第一輪 each topic 至多 1 篇）。"""
+    """按 engagement 排 → 跨 topic 平衡挑 N 篇（第一輪 each topic 至多 1 篇）。
+
+    註：呼叫前 caller 應該已套 Type A / engagement floor 過濾，本 fn 只做排序+round-robin。
+    """
     pool = [p for p in posts if p["url"] and p["url"] not in exclude_urls]
     pool.sort(key=lambda p: -p["engagement"])
 
@@ -387,6 +422,10 @@ def sync_to_notion(rewrite_results: list[dict], db_id: str, token: str, dry_run:
 def main():
     parser = argparse.ArgumentParser(description="OLIE 半自動發文 pipeline")
     parser.add_argument("--top-n", type=int, default=3, help="挑幾篇 candidates（default 3）")
+    parser.add_argument("--min-engagement", type=int, default=1000,
+                        help="engagement 門檻（default 1000；0 = 不過濾）")
+    parser.add_argument("--no-type-a", action="store_true",
+                        help="關掉 Type A 過濾（預設只挑 likes≥P90 AND comments≥P90 的全能爆款）")
     parser.add_argument("--dry-run", action="store_true", help="改寫但不寫 Notion，print 結果")
     parser.add_argument("--pick-only", action="store_true", help="只挑不改寫不寫")
     parser.add_argument("--persona-only", action="store_true", help="只印 OLIE persona system prompt")
@@ -425,14 +464,26 @@ def main():
     all_posts = [p for p in all_posts if is_zh_tw(p["text"])]
     print(f"   total {before} 篇 → zh-TW 過濾後 {len(all_posts)} 篇")
 
-    # 3. dedupe — 查 Auto Post DB 30 天內已用的原文 URL
+    # 3. engagement floor 過濾
+    if args.min_engagement > 0:
+        before = len(all_posts)
+        all_posts = [p for p in all_posts if p["engagement"] >= args.min_engagement]
+        print(f"📊 engagement ≥ {args.min_engagement} 過濾: {before} → {len(all_posts)} 篇")
+
+    # 4. Type A 過濾（likes ≥ P90 AND comments ≥ P90，跨 topic 一起算 percentile）
+    if not args.no_type_a:
+        before = len(all_posts)
+        all_posts = filter_type_a(all_posts)
+        print(f"🔥 Type A 全能爆款過濾: {before} → {len(all_posts)} 篇")
+
+    # 5. dedupe — 查 Auto Post DB 30 天內已用的原文 URL
     db_id = secrets.get("NOTION_AUTO_POST_DB_ID")
     if not db_id:
         sys.exit("❌ NOTION_AUTO_POST_DB_ID 缺（檢查 env / .env）")
     exclude = fetch_recent_origin_urls(db_id, secrets["NOTION_TOKEN"])
     print(f"🚫 排除 30 天內已用的 {len(exclude)} 個 URL")
 
-    # 4. pick
+    # 6. pick
     picked = pick_candidates(all_posts, args.top_n, exclude)
     print(f"🎯 挑出 {len(picked)} 篇 candidates")
     for c in picked:
