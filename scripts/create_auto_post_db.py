@@ -124,6 +124,16 @@ PROPERTIES = {
             ]
         }
     },
+    "來源": {
+        # auto = sns-data cron pipeline 寫進來的
+        # manual = telegram bot /rewrite 鴿王手動觸發的
+        "select": {
+            "options": [
+                {"name": "auto",   "color": "blue"},
+                {"name": "manual", "color": "green"},
+            ]
+        }
+    },
     "Post date":          {"date": {}},
     "貼文人": {
         # 跟既有 Posts DB「貼文人」一致用 multi_select + canonical poster 名

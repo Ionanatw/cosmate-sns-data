@@ -135,11 +135,13 @@ def fetch_recent_origin_urls(db_id: str, token: str, days: int = 30) -> set[str]
 
 def build_auto_post_props(*, title: str, original_url: str, author: str, topic: str,
                            window: str, original_text: str, rewritten_text: str,
-                           engagement: int, today_iso: str, post_id: str = "") -> dict:
+                           engagement: int, today_iso: str, post_id: str = "",
+                           source: str = "auto") -> dict:
     """把 candidate + rewrite 結果組成 Auto Post DB 的 properties dict。
 
-    對齊 PR1.5 / DB id 3876fedce91a802eaf49c86eba7cd72c 的 16 個欄位。
-    PR2 階段只填 12 個 — Permalink/Post date/Telegram message id 等到下游 PR 才填。
+    source: "auto" (cron pipeline) | "manual" (telegram /rewrite 手動觸發)
+    對齊 PR1.5 / DB id 3876fedce91a802eaf49c86eba7cd72c 的 17 個欄位。
+    PR2 階段只填 13 個 — Permalink/Post date/Telegram message id 等到下游 PR 才填。
     """
     diff = abs(len(rewritten_text) - len(original_text))
     # Notion rich_text 單個 segment 上限 2000 字元，留些 margin
@@ -156,6 +158,7 @@ def build_auto_post_props(*, title: str, original_url: str, author: str, topic: 
         "熱度分數":           {"number": engagement},
         "掃描日":             {"date": {"start": today_iso}},
         "審核狀態":           {"select": {"name": "pending_review"}},
+        "來源":              {"select": {"name": source}},
         "貼文人":             {"multi_select": [{"name": OLIE_POSTER}]},
         "Threads Post ID":   {"rich_text": [{"text": {"content": post_id}}]} if post_id else {"rich_text": []},
     }
