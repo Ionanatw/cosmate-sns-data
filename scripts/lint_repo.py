@@ -34,6 +34,7 @@ LOCAL_PATH_ALLOW = {
     "scripts/upload_secrets.sh",
     "scripts/backfill_trending_signal_urls.py",
     "scripts/lint_repo.py",  # 本檔（docstring 提到規則）
+    "scripts/lib/notion_lib.py",  # ionachen .env.threads fallback（跟 extract_trending_signals 同性質）
 }
 
 RULES_SH = [
