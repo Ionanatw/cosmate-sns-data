@@ -142,17 +142,20 @@ def _percentile(values, p):
     return s[f] * (c - k) + s[c] * (k - f)
 
 
-def filter_type_a(posts: list[dict]) -> list[dict]:
-    """挑出 Type A 全能爆款：likes ≥ P90 AND comments ≥ P90（per batch）。
+def filter_top_p90(posts: list[dict]) -> list[dict]:
+    """挑出單一 metric 觸頂 P90 的爆款：likes ≥ P90 OR comments ≥ P90。
 
-    跨 topic 一起算 percentile（OLIE 流程候選池是混合的）— 跟 analyze.py 的
-    per-topic percentile 取捨不同，但本流程要的就是跨 topic 比較。
+    ⚠️ 跟 analyze.py:classify_posts 的 Type A 定義不同（那邊是 AND）— 鴿王在
+    issue #8 對話拍板用 OR：Threads 上「短梗高 likes 低留言」跟「議題文低
+    likes 高留言」是兩種不同爆紅形態，AND 會把這兩種都濾掉。
+
+    跨 topic 一起算 percentile（OLIE 流程候選池是混合的）。
     """
     if not posts:
         return []
     likes_p90 = _percentile([p["likes"] for p in posts], 90)
     comments_p90 = _percentile([p["comments"] for p in posts], 90)
-    return [p for p in posts if p["likes"] >= likes_p90 and p["comments"] >= comments_p90]
+    return [p for p in posts if p["likes"] >= likes_p90 or p["comments"] >= comments_p90]
 
 
 def pick_candidates(posts: list[dict], top_n: int, exclude_urls: set[str]) -> list[dict]:
@@ -422,10 +425,10 @@ def sync_to_notion(rewrite_results: list[dict], db_id: str, token: str, dry_run:
 def main():
     parser = argparse.ArgumentParser(description="OLIE 半自動發文 pipeline")
     parser.add_argument("--top-n", type=int, default=3, help="挑幾篇 candidates（default 3）")
-    parser.add_argument("--min-engagement", type=int, default=1000,
-                        help="engagement 門檻（default 1000；0 = 不過濾）")
-    parser.add_argument("--no-type-a", action="store_true",
-                        help="關掉 Type A 過濾（預設只挑 likes≥P90 AND comments≥P90 的全能爆款）")
+    parser.add_argument("--min-engagement", type=int, default=500,
+                        help="engagement 門檻（default 500；0 = 不過濾）")
+    parser.add_argument("--no-top-p90", action="store_true",
+                        help="關掉 P90 過濾（預設只挑 likes≥P90 OR comments≥P90 的高互動爆款）")
     parser.add_argument("--dry-run", action="store_true", help="改寫但不寫 Notion，print 結果")
     parser.add_argument("--pick-only", action="store_true", help="只挑不改寫不寫")
     parser.add_argument("--persona-only", action="store_true", help="只印 OLIE persona system prompt")
@@ -470,11 +473,11 @@ def main():
         all_posts = [p for p in all_posts if p["engagement"] >= args.min_engagement]
         print(f"📊 engagement ≥ {args.min_engagement} 過濾: {before} → {len(all_posts)} 篇")
 
-    # 4. Type A 過濾（likes ≥ P90 AND comments ≥ P90，跨 topic 一起算 percentile）
-    if not args.no_type_a:
+    # 4. P90 過濾（likes ≥ P90 OR comments ≥ P90，跨 topic 一起算）
+    if not args.no_top_p90:
         before = len(all_posts)
-        all_posts = filter_type_a(all_posts)
-        print(f"🔥 Type A 全能爆款過濾: {before} → {len(all_posts)} 篇")
+        all_posts = filter_top_p90(all_posts)
+        print(f"🔥 P90 高互動過濾 (OR 規則): {before} → {len(all_posts)} 篇")
 
     # 5. dedupe — 查 Auto Post DB 30 天內已用的原文 URL
     db_id = secrets.get("NOTION_AUTO_POST_DB_ID")
