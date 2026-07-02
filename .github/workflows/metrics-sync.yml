@@ -24,6 +24,14 @@ jobs:
           python-version: '3.11'
         # sync_to_notion.py / sync_ig_to_notion.py 只用 Python stdlib，不需 pip install
 
+      # 自癒：外部殘留寫入端會反覆把「來源」寫成含空格版（✍️ 人工），Notion 自動重建
+      # 該選項 → 下面 validate 會紅 → 整條同步凍結。先自動 retag+刪髒選項，斷開這個循環。
+      - name: Heal Notion option pollution (self-heal)
+        env:
+          NOTION_TOKEN:       ${{ secrets.NOTION_TOKEN }}
+          NOTION_POSTS_DB_ID: ${{ secrets.NOTION_POSTS_DB_ID }}
+        run: python3 scripts/heal_notion_options.py
+
       # 防呆：欄位名（含尾端空白）與 multi_select 選項污染，先驗再同步
       # 失敗 → workflow 變紅 → failure-notify 發 Telegram
       - name: Validate Notion schema
