@@ -34,6 +34,18 @@ HEAL_TARGETS = [
     ("NOTION_POSTS_DB_ID", "來源", "✍️人工"),
 ]
 
+# multi_select 的「同人物差字變體」別名表（差的不只是空白，正規化抓不到，需明列）。
+# 例：交友中Kiki（漏「的」）→ 交友中的Kiki。canonical 名以 accounts.py ACCOUNT_TO_POSTER 為準。
+# 發現新變體就往這裡加一行（比照 nexus commands.ts alias 容錯做法）。
+# 結構：DB 環境變數名 → 欄位名 → { 舊變體: canonical }
+MULTISELECT_ALIASES = {
+    "NOTION_POSTS_DB_ID": {
+        "貼文人": {
+            "交友中Kiki": "交友中的Kiki",
+        },
+    },
+}
+
 
 def normalize(name):
     return re.sub(r"\s+", "", name)
@@ -101,6 +113,56 @@ def heal_select(db_id, field, canonical, token, dry_run):
     return len(bad_names), retagged
 
 
+def query_pages_with_multiselect(db_id, field, option_name, token):
+    pages, cursor = [], None
+    while True:
+        body = {"filter": {"property": field, "multi_select": {"contains": option_name}}, "page_size": 100}
+        if cursor:
+            body["start_cursor"] = cursor
+        res = api("POST", f"/databases/{db_id}/query", token, body)
+        pages += res["results"]
+        if not res.get("has_more"):
+            return pages
+        cursor = res["next_cursor"]
+
+
+def heal_multiselect_aliases(db_id, field, alias_map, token, dry_run):
+    """把 multi_select 的已知舊變體 tag 併入 canonical，再刪掉變體選項。回傳 (變體數, retag 頁數)。"""
+    schema = api("GET", f"/databases/{db_id}", token)
+    prop = schema.get("properties", {}).get(field)
+    if not prop or prop.get("type") != "multi_select":
+        return 0, 0
+    existing = {o["name"] for o in prop["multi_select"]["options"]}
+    variants = {v: c for v, c in alias_map.items() if v in existing}
+    if not variants:
+        return 0, 0
+
+    retagged = 0
+    for variant, canonical in variants.items():
+        pages = query_pages_with_multiselect(db_id, field, variant, token)
+        print(f"🩹 [{field}] 差字變體 {variant!r} → 併入 {canonical!r}：{len(pages)} 頁待 retag")
+        if dry_run:
+            retagged += len(pages)
+            continue
+        for p in pages:
+            cur = [o["name"] for o in p["properties"][field]["multi_select"]]
+            new = [n for n in cur if n != variant]
+            if canonical not in new:
+                new.append(canonical)
+            api("PATCH", f"/pages/{p['id']}", token,
+                {"properties": {field: {"multi_select": [{"name": n} for n in new]}}})
+            retagged += 1
+
+    if not dry_run:
+        fresh = api("GET", f"/databases/{db_id}", token)["properties"][field]["multi_select"]["options"]
+        keep = [{"id": o["id"]} for o in fresh if o["name"] not in variants]
+        api("PATCH", f"/databases/{db_id}", token, {"properties": {field: {"multi_select": {"options": keep}}}})
+        print(f"   ✅ 已刪除 {len(variants)} 個變體選項、retag {retagged} 頁")
+    else:
+        print(f"   （dry-run）將 retag {retagged} 頁並刪除 {len(variants)} 個變體選項")
+    return len(variants), retagged
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", help="只報告，不動 Notion")
@@ -123,6 +185,20 @@ def main():
             # 自癒失敗不擋 pipeline（後面的 validate 仍會攔）；印出讓 log 看得到
             body = e.read().decode("utf-8", errors="replace")
             print(f"⚠️  自癒 {field} 失敗：HTTP {e.code} {body[:150]}", file=sys.stderr)
+
+    # multi_select 差字變體（例：貼文人 交友中Kiki → 交友中的Kiki）
+    for db_env, fields in MULTISELECT_ALIASES.items():
+        db_id = os.environ.get(db_env)
+        if not db_id:
+            print(f"⏭️  {db_env} 未設定，跳過 multi_select 別名修復")
+            continue
+        for field, alias_map in fields.items():
+            try:
+                n_var, _ = heal_multiselect_aliases(db_id, field, alias_map, token, args.dry_run)
+                total_bad += n_var
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", errors="replace")
+                print(f"⚠️  自癒 {field} 別名失敗：HTTP {e.code} {body[:150]}", file=sys.stderr)
 
     if total_bad == 0:
         print("✅ 無選項污染，無需修復")
